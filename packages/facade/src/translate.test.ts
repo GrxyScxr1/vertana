@@ -1,0 +1,198 @@
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import type { LanguageModel } from "ai";
+import { translate } from "./index.ts";
+import { getTestModel, hasTestModel } from "./testing.ts";
+
+// Lazy model initialization (cached)
+let cachedModel: LanguageModel | undefined;
+async function getModel(): Promise<LanguageModel> {
+  if (cachedModel == null) {
+    const m = await getTestModel();
+    if (m == null) {
+      throw new Error("TEST_MODEL not set");
+    }
+    cachedModel = m;
+  }
+  return cachedModel;
+}
+
+// Bun's node:test compatibility doesn't support skip option,
+// so we skip defining tests entirely when TEST_MODEL is not set in Bun
+if (hasTestModel() || !("Bun" in globalThis)) {
+  describe(
+    "translate",
+    { skip: !hasTestModel() && "TEST_MODEL not set" },
+    () => {
+      it("translates text to the target language", async () => {
+        const model = await getModel();
+        const result = await translate(model, "ko", "Hello, world!");
+
+        // The result should contain Korean text
+        assert.ok(result.text.length > 0);
+        // Common Korean translations of "Hello, world!"
+        assert.ok(
+          result.text.includes("안녕") ||
+            result.text.includes("세계") ||
+            result.text.includes("월드"),
+          `Expected Korean translation, got: ${result.text}`,
+        );
+      });
+
+      it("translates with source language specified", async () => {
+        const model = await getModel();
+        const result = await translate(model, "ja", "Hello, world!", {
+          sourceLanguage: "en",
+        });
+
+        assert.ok(result.text.length > 0);
+        // Should contain Japanese characters
+        assert.ok(
+          /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/.test(result.text),
+          `Expected Japanese translation, got: ${result.text}`,
+        );
+      });
+
+      it("translates with formal tone", async () => {
+        const model = await getModel();
+        const result = await translate(model, "ko", "How are you?", {
+          tone: "formal",
+        });
+
+        assert.ok(result.text.length > 0);
+      });
+
+      it("translates with domain context", async () => {
+        const model = await getModel();
+        const result = await translate(
+          model,
+          "ko",
+          "The patient presents with acute myocardial infarction.",
+          { domain: "medical" },
+        );
+
+        assert.ok(result.text.length > 0);
+        // Should contain medical terminology in Korean
+        assert.ok(
+          result.text.includes("심근") || result.text.includes("경색"),
+          `Expected medical terminology, got: ${result.text}`,
+        );
+      });
+
+      it("preserves markdown formatting", async () => {
+        const model = await getModel();
+        const markdown = "# Hello\n\nThis is **bold** and *italic*.";
+        const result = await translate(model, "ko", markdown, {
+          mediaType: "text/markdown",
+        });
+
+        assert.ok(result.text.includes("#"));
+        assert.ok(result.text.includes("**"));
+        assert.ok(result.text.includes("*"));
+      });
+
+      it("uses glossary for consistent terminology", async () => {
+        const model = await getModel();
+        const result = await translate(
+          model,
+          "ko",
+          "Machine learning is a subset of artificial intelligence.",
+          {
+            glossary: [
+              { original: "machine learning", translated: "기계 학습" },
+              { original: "artificial intelligence", translated: "인공 지능" },
+            ],
+          },
+        );
+
+        assert.ok(result.text.includes("기계 학습"));
+        assert.ok(result.text.includes("인공 지능"));
+      });
+
+      it("reports token usage", async () => {
+        const model = await getModel();
+        const result = await translate(model, "ko", "Hello, world!");
+
+        assert.ok(typeof result.tokenUsed === "number");
+        assert.ok(result.tokenUsed >= 0);
+      });
+
+      it("reports processing time", async () => {
+        const model = await getModel();
+        const result = await translate(model, "ko", "Hello, world!");
+
+        assert.ok(typeof result.processingTime === "number");
+        assert.ok(result.processingTime > 0);
+      });
+
+      it("calls onProgress callback", async () => {
+        const model = await getModel();
+        const progressCalls: Array<{ stage: string; progress: number }> = [];
+
+        await translate(model, "ko", "Hello, world!", {
+          onProgress: (progress) => {
+            progressCalls.push({
+              stage: progress.stage,
+              progress: progress.progress,
+            });
+          },
+        });
+
+        assert.ok(progressCalls.length >= 2);
+        assert.equal(progressCalls[0].stage, "translating");
+        assert.equal(progressCalls[0].progress, 0);
+        assert.equal(
+          progressCalls[progressCalls.length - 1].stage,
+          "translating",
+        );
+        assert.equal(progressCalls[progressCalls.length - 1].progress, 1);
+      });
+
+      it("handles Intl.Locale for target language", async () => {
+        const model = await getModel();
+        const result = await translate(
+          model,
+          new Intl.Locale("fr"),
+          "Hello, world!",
+        );
+
+        assert.ok(result.text.length > 0);
+        // Common French translations
+        assert.ok(
+          result.text.toLowerCase().includes("bonjour") ||
+            result.text.toLowerCase().includes("salut") ||
+            result.text.toLowerCase().includes("monde"),
+          `Expected French translation, got: ${result.text}`,
+        );
+      });
+
+      it("translates title when provided", async () => {
+        const model = await getModel();
+        const result = await translate(model, "ko", "This is the content.", {
+          title: "My Article",
+        });
+
+        assert.ok(result.title != null);
+        assert.ok(result.title.length > 0);
+      });
+
+      it("respects abort signal", async () => {
+        const model = await getModel();
+        const controller = new AbortController();
+        controller.abort();
+
+        await assert.rejects(
+          async () => {
+            await translate(model, "ko", "Hello, world!", {
+              signal: controller.signal,
+            });
+          },
+          (error: Error) => {
+            return error.name === "AbortError" ||
+              error.message.includes("abort");
+          },
+        );
+      });
+    },
+  );
+}

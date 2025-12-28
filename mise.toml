@@ -1,0 +1,43 @@
+[tools]
+bun = "1.2"
+deno = "2.3"
+node = "24"
+"npm:pnpm" = "latest"
+"npm:@dotenvx/dotenvx" = "latest"
+
+[tasks.install]
+description = "Install all dependencies and update the lockfiles"
+run = "deno task install"
+
+[tasks.check]
+description = "Check code formatting, linting, and type checking"
+run = "deno task check"
+
+[tasks.check-versions]
+description = "Check that all subpackages have matching versions"
+usage = '''
+flag "--fix" help="Automatically fix version mismatches"
+'''
+run = '''
+if [[ "${usage_fix}" == "true" ]]; then
+  deno task check-versions --fix
+else
+  deno task check-versions
+fi
+'''
+
+[tasks."test:deno"]
+description = "Run the test suite using Deno"
+run = "deno task test"
+
+[tasks."test:node"]
+description = "Run the test suite using Node.js"
+run = "pnpm install && dotenvx run -f .env.test --ignore=MISSING_ENV_FILE -- pnpm run -r test"
+
+[tasks."test:bun"]
+description = "Run the test suite using Bun"
+run = "pnpm install && dotenvx run -f .env.test --ignore=MISSING_ENV_FILE -- pnpm run -r test:bun"
+
+[tasks.test]
+description = "Run the test suite across all environments"
+depends = ["check", "test:*"]

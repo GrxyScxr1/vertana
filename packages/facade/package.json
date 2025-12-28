@@ -1,0 +1,79 @@
+{
+  "name": "@vertana/facade",
+  "version": "0.1.0",
+  "description": "An LLM-powered natural language translation facade library",
+  "keywords": [
+    "LLM",
+    "translation",
+    "natural language processing",
+    "NLP",
+    "language model"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Hong Minhee",
+    "email": "hong@minhee.org",
+    "url": "https://hongminhee.org/"
+  },
+  "homepage": "https://vertana.org/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dahlia/vertana.git",
+    "directory": "packages/facade"
+  },
+  "bugs": {
+    "url": "https://github.com/dahlia/vertana/issues"
+  },
+  "funding": [
+    "https://github.com/sponsors/dahlia"
+  ],
+  "engines": {
+    "node": ">=20.0.0",
+    "bun": ">=1.2.0",
+    "deno": ">=2.3.0"
+  },
+  "files": [
+    "dist/",
+    "package.json",
+    "README.md"
+  ],
+  "type": "module",
+  "module": "./dist/index.js",
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": {
+        "require": "./dist/index.d.cts",
+        "import": "./dist/index.d.ts"
+      },
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js"
+    }
+  },
+  "sideEffects": false,
+  "dependencies": {
+    "@vertana/core": "workspace:"
+  },
+  "peerDependencies": {
+    "ai": "catalog:"
+  },
+  "devDependencies": {
+    "@ai-sdk/anthropic": "catalog:",
+    "@ai-sdk/google": "catalog:",
+    "@ai-sdk/openai": "catalog:",
+    "@types/node": "catalog:",
+    "ai": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "prepack": "tsdown",
+    "prepublish": "tsdown",
+    "test": "tsdown && node --experimental-transform-types --test",
+    "test:bun": "tsdown && bun test",
+    "test:deno": "deno test --allow-env --allow-net",
+    "test-all": "tsdown && node --experimental-transform-types --test && bun test && deno test"
+  }
+}

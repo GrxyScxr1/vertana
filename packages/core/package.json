@@ -1,0 +1,115 @@
+{
+  "name": "@vertana/core",
+  "version": "0.1.0",
+  "description": "The core library for Vertana, an LLM-powered natural language translation library",
+  "keywords": [
+    "LLM",
+    "translation",
+    "natural language processing",
+    "NLP",
+    "language model"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Hong Minhee",
+    "email": "hong@minhee.org",
+    "url": "https://hongminhee.org/"
+  },
+  "homepage": "https://vertana.org/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dahlia/vertana.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/dahlia/vertana/issues"
+  },
+  "funding": [
+    "https://github.com/sponsors/dahlia"
+  ],
+  "engines": {
+    "node": ">=20.0.0",
+    "bun": ">=1.2.0",
+    "deno": ">=2.3.0"
+  },
+  "files": [
+    "dist/",
+    "package.json",
+    "README.md"
+  ],
+  "type": "module",
+  "module": "./dist/index.js",
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": {
+        "require": "./dist/index.d.cts",
+        "import": "./dist/index.d.ts"
+      },
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js"
+    },
+    "./chunking": {
+      "types": {
+        "require": "./dist/chunking.d.cts",
+        "import": "./dist/chunking.d.ts"
+      },
+      "require": "./dist/chunking.cjs",
+      "import": "./dist/chunking.js"
+    },
+    "./context": {
+      "types": {
+        "require": "./dist/context.d.cts",
+        "import": "./dist/context.d.ts"
+      },
+      "require": "./dist/context.cjs",
+      "import": "./dist/context.js"
+    },
+    "./evaluation": {
+      "types": {
+        "require": "./dist/evaluation.d.cts",
+        "import": "./dist/evaluation.d.ts"
+      },
+      "require": "./dist/evaluation.cjs",
+      "import": "./dist/evaluation.js"
+    },
+    "./glossary": {
+      "types": {
+        "require": "./dist/glossary.d.cts",
+        "import": "./dist/glossary.d.ts"
+      },
+      "require": "./dist/glossary.cjs",
+      "import": "./dist/glossary.js"
+    },
+    "./window": {
+      "types": {
+        "require": "./dist/window.d.cts",
+        "import": "./dist/window.d.ts"
+      },
+      "require": "./dist/window.cjs",
+      "import": "./dist/window.js"
+    }
+  },
+  "sideEffects": false,
+  "peerDependencies": {
+    "@standard-schema/spec": "catalog:",
+    "ai": "catalog:"
+  },
+  "devDependencies": {
+    "@standard-schema/spec": "catalog:",
+    "@types/node": "catalog:",
+    "ai": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "prepack": "tsdown",
+    "prepublish": "tsdown",
+    "test": "tsdown && node --experimental-transform-types --test",
+    "test:bun": "tsdown && bun test",
+    "test:deno": "deno test --allow-env",
+    "test-all": "tsdown && node --experimental-transform-types --test && bun test && deno test"
+  }
+}

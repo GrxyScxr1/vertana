@@ -1,0 +1,154 @@
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
+import {
+  buildSystemPrompt,
+  buildUserPrompt,
+  extractTitle,
+  getLanguageName,
+} from "./prompt.ts";
+
+describe("getLanguageName", () => {
+  it("returns English name for language code", () => {
+    assert.equal(getLanguageName("ko"), "Korean");
+    assert.equal(getLanguageName("en"), "English");
+    assert.equal(getLanguageName("ja"), "Japanese");
+    assert.equal(getLanguageName("zh"), "Chinese");
+    assert.equal(getLanguageName("fr"), "French");
+  });
+
+  it("handles Intl.Locale objects", () => {
+    assert.equal(getLanguageName(new Intl.Locale("ko")), "Korean");
+    assert.equal(getLanguageName(new Intl.Locale("en-US")), "American English");
+  });
+
+  it("returns the tag itself for unknown languages", () => {
+    assert.equal(getLanguageName("xyz"), "xyz");
+  });
+});
+
+describe("buildSystemPrompt", () => {
+  it("builds basic prompt with target language", () => {
+    const prompt = buildSystemPrompt("ko");
+
+    assert.ok(prompt.includes("professional translator"));
+    assert.ok(prompt.includes("Korean"));
+    assert.ok(prompt.includes("Preserve the original meaning"));
+    assert.ok(prompt.includes("Output only the translated text"));
+  });
+
+  it("includes source language when provided", () => {
+    const prompt = buildSystemPrompt("ko", { sourceLanguage: "en" });
+
+    assert.ok(prompt.includes("source language is English"));
+  });
+
+  it("includes tone when provided", () => {
+    const prompt = buildSystemPrompt("ko", { tone: "formal" });
+
+    assert.ok(prompt.includes("formal tone"));
+  });
+
+  it("includes domain when provided", () => {
+    const prompt = buildSystemPrompt("ko", { domain: "medical" });
+
+    assert.ok(prompt.includes("medical domain"));
+    assert.ok(prompt.includes("appropriate terminology"));
+  });
+
+  it("includes media type for HTML", () => {
+    const prompt = buildSystemPrompt("ko", { mediaType: "text/html" });
+
+    assert.ok(prompt.includes("formatted as HTML"));
+    assert.ok(prompt.includes("Preserve the formatting"));
+  });
+
+  it("includes media type for Markdown", () => {
+    const prompt = buildSystemPrompt("ko", { mediaType: "text/markdown" });
+
+    assert.ok(prompt.includes("formatted as Markdown"));
+  });
+
+  it("does not include media type for plain text", () => {
+    const prompt = buildSystemPrompt("ko", { mediaType: "text/plain" });
+
+    assert.ok(!prompt.includes("formatted as"));
+  });
+
+  it("includes context when provided", () => {
+    const prompt = buildSystemPrompt("ko", {
+      context: "This is a blog post about technology.",
+    });
+
+    assert.ok(prompt.includes("Additional context:"));
+    assert.ok(prompt.includes("blog post about technology"));
+  });
+
+  it("includes glossary when provided", () => {
+    const prompt = buildSystemPrompt("ko", {
+      glossary: [
+        { original: "machine learning", translated: "기계 학습" },
+        {
+          original: "neural network",
+          translated: "신경망",
+          context: "in AI context",
+        },
+      ],
+    });
+
+    assert.ok(prompt.includes("glossary for consistent terminology"));
+    assert.ok(prompt.includes('"machine learning" → "기계 학습"'));
+    assert.ok(prompt.includes('"neural network" → "신경망" (in AI context)'));
+  });
+
+  it("does not include glossary section when glossary is empty", () => {
+    const prompt = buildSystemPrompt("ko", { glossary: [] });
+
+    assert.ok(!prompt.includes("glossary"));
+  });
+});
+
+describe("buildUserPrompt", () => {
+  it("returns text as-is when no title", () => {
+    const prompt = buildUserPrompt("Hello, world!");
+
+    assert.equal(prompt, "Hello, world!");
+  });
+
+  it("includes title when provided", () => {
+    const prompt = buildUserPrompt("Hello, world!", "Greeting");
+
+    assert.equal(prompt, "Title: Greeting\n\nHello, world!");
+  });
+});
+
+describe("extractTitle", () => {
+  it("extracts title prefixed with 'Title:'", () => {
+    const title = extractTitle("Title: 인사말\n\n안녕하세요!");
+
+    assert.equal(title, "인사말");
+  });
+
+  it("extracts first line when no 'Title:' prefix", () => {
+    const title = extractTitle("인사말\n\n안녕하세요!");
+
+    assert.equal(title, "인사말");
+  });
+
+  it("returns undefined for empty string", () => {
+    const title = extractTitle("");
+
+    assert.equal(title, undefined);
+  });
+
+  it("handles single line text", () => {
+    const title = extractTitle("단일 라인");
+
+    assert.equal(title, "단일 라인");
+  });
+
+  it("trims whitespace from extracted title", () => {
+    const title = extractTitle("Title:   인사말   \n\n안녕하세요!");
+
+    assert.equal(title, "인사말");
+  });
+});

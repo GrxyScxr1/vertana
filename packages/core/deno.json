@@ -1,0 +1,40 @@
+{
+  "name": "@vertana/core",
+  "version": "0.1.0",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.ts",
+    "./chunking": "./src/chunking.ts",
+    "./context": "./src/context.ts",
+    "./evaluation": "./src/evaluation.ts",
+    "./glossary": "./src/glossary.ts",
+    "./window": "./src/window.ts"
+  },
+  "exclude": [
+    "dist/",
+    "tsdown.config.ts"
+  ],
+  "tasks": {
+    "build": "pnpm build",
+    "test": "deno test --allow-env",
+    "test:node": {
+      "dependencies": [
+        "build"
+      ],
+      "command": "node --experimental-transform-types --test"
+    },
+    "test:bun": {
+      "dependencies": [
+        "build"
+      ],
+      "command": "bun test"
+    },
+    "test-all": {
+      "dependencies": [
+        "test",
+        "test:node",
+        "test:bun"
+      ]
+    }
+  }
+}
