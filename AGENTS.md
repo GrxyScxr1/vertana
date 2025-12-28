@@ -183,6 +183,19 @@ Code style
     Use `assert.ok(...)` and `assert.ok(!...)` instead.
 
 
+Writing style
+-------------
+
+When writing documentation in English:
+
+ -  Use sentence case for titles and headings (capitalize only the first word
+    and proper nouns), not Title Case.
+ -  Use *italics* for emphasis rather than **bold**.  Do not overuse emphasis.
+ -  Avoid common LLM writing patterns: overusing em dashes, excessive emphasis,
+    compulsive summarizing and categorizing, and rigid textbook-like structure
+    at the expense of natural flow.
+
+
 Markdown style guide
 --------------------
 

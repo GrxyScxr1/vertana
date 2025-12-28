@@ -12,6 +12,29 @@ gather rich contextual information, ensuring high-quality translations that
 preserve meaning, tone, formatting.
 
 
+Features
+--------
+
+### Implemented
+
+ -  Basic translation with LLM
+ -  Markdown-aware chunking (section boundaries, ATX/Setext headings)
+ -  Token counting (js-tiktoken, cl100k_base encoding)
+ -  Progress reporting via callback
+ -  Glossary support for consistent terminology
+ -  Tone, domain, and media type options
+ -  Abort signal support for cancellation
+
+### Planned
+
+ -  Context gathering from external sources (agentic workflows)
+ -  Translation quality evaluation
+ -  Iterative refinement (evaluate → fix → re-evaluate loop)
+ -  Best-of-N selection with multiple models
+ -  Adaptive context window detection
+ -  HTML and plain text chunkers
+
+
 Packages
 --------
 
