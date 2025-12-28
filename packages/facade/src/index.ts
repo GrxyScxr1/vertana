@@ -1,15 +1,60 @@
+import { type Chunk, countTokens, createMarkdownChunker } from "@vertana/core";
 import { generateText, type LanguageModel } from "ai";
 import { buildSystemPrompt, buildUserPrompt, extractTitle } from "./prompt.ts";
-import type { TranslateOptions, Translation } from "./types.ts";
+import type { MediaType, TranslateOptions, Translation } from "./types.ts";
 
 export type {
+  ChunkingProgress,
+  GatheringContextProgress,
   MediaType,
+  PromptingProgress,
   RefinementOptions,
   TranslateOptions,
+  TranslatingProgress,
   Translation,
   TranslationProgress,
   TranslationTone,
 } from "./types.ts";
+
+/**
+ * Gets the default chunker based on media type.
+ *
+ * @param mediaType The media type of the content.
+ * @returns The appropriate chunker for the media type.
+ */
+function getDefaultChunker(_mediaType?: MediaType) {
+  // For now, use markdown chunker for all types
+  // TODO: Add specialized chunkers for other media types
+  return createMarkdownChunker();
+}
+
+/**
+ * Translates a single chunk of text.
+ *
+ * @param model The language model to use.
+ * @param systemPrompt The system prompt.
+ * @param text The text to translate.
+ * @param signal Optional abort signal.
+ * @returns The translation result.
+ */
+async function translateChunk(
+  model: LanguageModel,
+  systemPrompt: string,
+  text: string,
+  signal?: AbortSignal,
+): Promise<{ text: string; tokenUsed: number }> {
+  const userPrompt = buildUserPrompt(text);
+  const result = await generateText({
+    model,
+    system: systemPrompt,
+    prompt: userPrompt,
+    abortSignal: signal,
+  });
+  return {
+    text: result.text,
+    tokenUsed: result.usage?.totalTokens ?? 0,
+  };
+}
 
 /**
  * Translates the given text to the specified target language using the provided
@@ -46,30 +91,94 @@ export async function translate(
     glossary: options?.glossary,
   });
 
-  // Build the user prompt
-  const userPrompt = buildUserPrompt(text, options?.title);
+  // Determine the chunker to use
+  const chunker = options?.chunker === null
+    ? null
+    : options?.chunker ?? getDefaultChunker(options?.mediaType);
 
-  // Report progress: translating
-  options?.onProgress?.({ stage: "translating", progress: 0 });
+  // Get max tokens from context window (default 4096 for chunking)
+  const maxTokens = options?.contextWindow?.type === "explicit"
+    ? options.contextWindow.maxTokens
+    : 4096;
 
-  // Generate the translation
-  const result = await generateText({
-    model: selectedModel,
-    system: systemPrompt,
-    prompt: userPrompt,
-    abortSignal: options?.signal,
+  // Check if chunking is needed
+  let chunks: readonly Chunk[] = [];
+  if (chunker != null) {
+    options?.onProgress?.({ stage: "chunking", progress: 0 });
+    chunks = await chunker(text, {
+      maxTokens,
+      countTokens,
+      signal: options?.signal,
+    });
+    options?.onProgress?.({ stage: "chunking", progress: 1 });
+  }
+
+  // If no chunking or single chunk, translate directly
+  if (chunks.length <= 1) {
+    const userPrompt = buildUserPrompt(text, options?.title);
+    options?.onProgress?.({ stage: "translating", progress: 0 });
+
+    const result = await generateText({
+      model: selectedModel,
+      system: systemPrompt,
+      prompt: userPrompt,
+      abortSignal: options?.signal,
+    });
+
+    options?.onProgress?.({ stage: "translating", progress: 1 });
+
+    const processingTime = performance.now() - startTime;
+    const tokenUsed = result.usage?.totalTokens ?? 0;
+
+    return {
+      text: result.text,
+      title: options?.title != null ? extractTitle(result.text) : undefined,
+      tokenUsed,
+      processingTime,
+    };
+  }
+
+  // Translate each chunk
+  const translatedChunks: string[] = [];
+  let totalTokensUsed = 0;
+
+  for (let i = 0; i < chunks.length; i++) {
+    options?.signal?.throwIfAborted();
+
+    options?.onProgress?.({
+      stage: "translating",
+      progress: i / chunks.length,
+      chunkIndex: i,
+      totalChunks: chunks.length,
+    });
+
+    const chunkResult = await translateChunk(
+      selectedModel,
+      systemPrompt,
+      chunks[i].content,
+      options?.signal,
+    );
+
+    translatedChunks.push(chunkResult.text);
+    totalTokensUsed += chunkResult.tokenUsed;
+  }
+
+  options?.onProgress?.({
+    stage: "translating",
+    progress: 1,
+    chunkIndex: chunks.length,
+    totalChunks: chunks.length,
   });
 
-  // Report progress: complete
-  options?.onProgress?.({ stage: "translating", progress: 1 });
-
   const processingTime = performance.now() - startTime;
-  const tokenUsed = result.usage?.totalTokens ?? 0;
+
+  // Combine translated chunks
+  const combinedText = translatedChunks.join("\n\n");
 
   return {
-    text: result.text,
-    title: options?.title != null ? extractTitle(result.text) : undefined,
-    tokenUsed,
+    text: combinedText,
+    title: options?.title != null ? extractTitle(combinedText) : undefined,
+    tokenUsed: totalTokensUsed,
     processingTime,
   };
 }

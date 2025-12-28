@@ -8,6 +8,8 @@
     "./context": "./src/context.ts",
     "./evaluation": "./src/evaluation.ts",
     "./glossary": "./src/glossary.ts",
+    "./markdown": "./src/markdown.ts",
+    "./tokens": "./src/tokens.ts",
     "./window": "./src/window.ts"
   },
   "exclude": [

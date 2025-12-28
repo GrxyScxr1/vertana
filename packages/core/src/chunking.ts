@@ -1,11 +1,27 @@
 /**
+ * A function that counts the number of tokens in a string.
+ *
+ * @param text The text to count tokens for.
+ * @returns The number of tokens.
+ */
+export type TokenCounter = (text: string) => number;
+
+/**
  * Options for {@link Chunker}.
  */
 export interface ChunkerOptions {
   /**
    * The maximum number of tokens per chunk.
+   *
+   * @default `4096`
    */
   readonly maxTokens?: number;
+
+  /**
+   * A custom token counter function.  If not provided, a default
+   * implementation using js-tiktoken (cl100k_base encoding) is used.
+   */
+  readonly countTokens?: TokenCounter;
 
   /**
    * An optional `AbortSignal` to cancel the chunking operation.

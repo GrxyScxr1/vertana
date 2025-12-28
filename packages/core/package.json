@@ -82,6 +82,22 @@
       "require": "./dist/glossary.cjs",
       "import": "./dist/glossary.js"
     },
+    "./markdown": {
+      "types": {
+        "require": "./dist/markdown.d.cts",
+        "import": "./dist/markdown.d.ts"
+      },
+      "require": "./dist/markdown.cjs",
+      "import": "./dist/markdown.js"
+    },
+    "./tokens": {
+      "types": {
+        "require": "./dist/tokens.d.cts",
+        "import": "./dist/tokens.d.ts"
+      },
+      "require": "./dist/tokens.cjs",
+      "import": "./dist/tokens.js"
+    },
     "./window": {
       "types": {
         "require": "./dist/window.d.cts",
@@ -92,6 +108,9 @@
     }
   },
   "sideEffects": false,
+  "dependencies": {
+    "js-tiktoken": "catalog:"
+  },
   "peerDependencies": {
     "@standard-schema/spec": "catalog:",
     "ai": "catalog:"

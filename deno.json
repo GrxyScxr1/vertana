@@ -10,11 +10,13 @@
     "@standard-schema/spec": "npm:@standard-schema/spec@^1.0.0",
     "@std/fs": "jsr:@std/fs@^1.0.21",
     "@std/path": "jsr:@std/path@^1.1.4",
-    "ai": "npm:ai@^6.0.3"
+    "ai": "npm:ai@^6.0.3",
+    "js-tiktoken": "npm:js-tiktoken@^1.0.21"
   },
   "exclude": [
     ".github/",
-    "docs/"
+    "docs/",
+    "tmp/"
   ],
   "fmt": {
     "exclude": [

@@ -84,6 +84,16 @@ to use an older version.
 
 [JSR API]: https://jsr.io/docs/api
 
+### Temporary scripts
+
+When creating temporary test scripts, save them in the *tmp/* directory
+at the project root (not the system */tmp* directory).  This directory is
+already in *.gitignore*.
+
+Using the project-local *tmp/* directory allows you to import `@vertana/*`
+packages with relative imports, whereas using the system */tmp* would require
+absolute paths since it is outside the workspace.
+
 
 Architecture
 ------------
@@ -108,6 +118,21 @@ Each package is published to both JSR (Deno) and npm (Node.js/Bun):
  -  *@logtape/logtape*: Logging framework
  -  *@standard-schema/spec*: Schema validation interface for library-agnostic
     schema definitions
+
+
+Development practices
+---------------------
+
+### Test-driven development
+
+This project follows test-driven development (TDD) practices:
+
+ -  *Write tests first*: Before implementing new functionality, write tests
+    that describe the expected behavior.  Confirm that the tests fail before
+    proceeding with the implementation.
+ -  *Regression tests for bugs*: When fixing bugs, first write a regression
+    test that reproduces the bug.  Confirm that the test fails, then fix the
+    bug and verify the test passes.
 
 
 Code style

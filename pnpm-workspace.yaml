@@ -9,6 +9,7 @@ catalog:
   "@standard-schema/spec": ^1.0.0
   "@types/node": ^20.19.9
   ai: ^6.0.3
+  js-tiktoken: ^1.0.21
   tsdown: ^0.18.3
   typescript: ^5.9.3
 

@@ -130,6 +130,7 @@ if (hasTestModel() || !("Bun" in globalThis)) {
         const progressCalls: Array<{ stage: string; progress: number }> = [];
 
         await translate(model, "ko", "Hello, world!", {
+          chunker: null, // Disable chunking for this test
           onProgress: (progress) => {
             progressCalls.push({
               stage: progress.stage,
@@ -192,6 +193,69 @@ if (hasTestModel() || !("Bun" in globalThis)) {
               error.message.includes("abort");
           },
         );
+      });
+
+      it("reports chunking progress for long texts", async () => {
+        const model = await getModel();
+        // Create text that will be split into ~4 chunks (enough to test, not too slow)
+        const longText = "This is a paragraph of text. ".repeat(50);
+        const progressCalls: Array<{
+          stage: string;
+          chunkIndex?: number;
+          totalChunks?: number;
+        }> = [];
+
+        await translate(model, "ko", longText, {
+          contextWindow: { type: "explicit", maxTokens: 100 },
+          onProgress: (progress) => {
+            progressCalls.push({
+              stage: progress.stage,
+              chunkIndex: progress.stage === "translating"
+                ? progress.chunkIndex
+                : undefined,
+              totalChunks: progress.stage === "translating"
+                ? progress.totalChunks
+                : undefined,
+            });
+          },
+        });
+
+        // Should have chunking stage
+        const chunkingCalls = progressCalls.filter((p) =>
+          p.stage === "chunking"
+        );
+        assert.ok(chunkingCalls.length >= 1);
+
+        // Should have translating stage with chunk info
+        const translatingCalls = progressCalls.filter((p) =>
+          p.stage === "translating"
+        );
+        assert.ok(translatingCalls.length >= 2);
+
+        // Check that chunk info is present
+        const withChunkInfo = translatingCalls.filter((p) =>
+          p.totalChunks != null && p.totalChunks > 1
+        );
+        assert.ok(
+          withChunkInfo.length > 0,
+          "Should have chunk info for long texts",
+        );
+      });
+
+      it("disables chunking when chunker is null", async () => {
+        const model = await getModel();
+        const progressCalls: string[] = [];
+
+        await translate(model, "ko", "Hello, world!", {
+          chunker: null,
+          onProgress: (progress) => {
+            progressCalls.push(progress.stage);
+          },
+        });
+
+        // Should not have chunking stage
+        assert.ok(!progressCalls.includes("chunking"));
+        assert.ok(progressCalls.includes("translating"));
       });
     },
   );

@@ -1,4 +1,9 @@
-import type { ContextSource, ContextWindow, Glossary } from "@vertana/core";
+import type {
+  Chunker,
+  ContextSource,
+  ContextWindow,
+  Glossary,
+} from "@vertana/core";
 
 /**
  * The media type of the input text.
@@ -21,19 +26,61 @@ export type TranslationTone =
   | "literary";
 
 /**
- * Progress information for the translation process.
+ * Base progress information shared by all stages.
  */
-export interface TranslationProgress {
-  /**
-   * The current stage of the translation process.
-   */
-  readonly stage: "prompting" | "gatheringContext" | "translating";
-
+interface BaseProgress {
   /**
    * The progress percentage (0 to 1) of the current stage.
    */
   readonly progress: number;
 }
+
+/**
+ * Progress information for the chunking stage.
+ */
+export interface ChunkingProgress extends BaseProgress {
+  readonly stage: "chunking";
+}
+
+/**
+ * Progress information for the prompting stage.
+ */
+export interface PromptingProgress extends BaseProgress {
+  readonly stage: "prompting";
+}
+
+/**
+ * Progress information for the context gathering stage.
+ */
+export interface GatheringContextProgress extends BaseProgress {
+  readonly stage: "gatheringContext";
+}
+
+/**
+ * Progress information for the translating stage.
+ */
+export interface TranslatingProgress extends BaseProgress {
+  readonly stage: "translating";
+
+  /**
+   * When chunking is used, indicates the current chunk index (0-based).
+   */
+  readonly chunkIndex?: number;
+
+  /**
+   * When chunking is used, indicates total number of chunks.
+   */
+  readonly totalChunks?: number;
+}
+
+/**
+ * Progress information for the translation process.
+ */
+export type TranslationProgress =
+  | ChunkingProgress
+  | PromptingProgress
+  | GatheringContextProgress
+  | TranslatingProgress;
 
 /**
  * The result of a translation operation.
@@ -165,4 +212,15 @@ export interface TranslateOptions {
    * is met or the maximum number of iterations is reached.
    */
   readonly refinement?: RefinementOptions;
+
+  /**
+   * A custom chunker function for splitting long texts.  If not provided,
+   * a default chunker is selected based on `mediaType`:
+   *
+   * - `"text/markdown"`: Markdown-aware chunker
+   * - `"text/plain"` or `"text/html"`: Paragraph-based chunker
+   *
+   * Set to `null` to disable chunking entirely.
+   */
+  readonly chunker?: Chunker | null;
 }
