@@ -24,10 +24,12 @@ Features
  -  Glossary support for consistent terminology
  -  Tone, domain, and media type options
  -  Abort signal support for cancellation
+ -  Context gathering from external sources (agentic workflows)
+     -  Required context sources: automatically invoked before translation
+     -  Passive context sources: LLM-invoked tools using StandardSchema
 
 ### Planned
 
- -  Context gathering from external sources (agentic workflows)
  -  Translation quality evaluation
  -  Iterative refinement (evaluate → fix → re-evaluate loop)
  -  Best-of-N selection with multiple models

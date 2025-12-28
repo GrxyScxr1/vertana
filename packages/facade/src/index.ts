@@ -1,7 +1,58 @@
-import { type Chunk, countTokens, createMarkdownChunker } from "@vertana/core";
-import { generateText, type LanguageModel } from "ai";
+import {
+  type Chunk,
+  type ContextResult,
+  type ContextSource,
+  countTokens,
+  createMarkdownChunker,
+  type PassiveContextSource,
+} from "@vertana/core";
+import {
+  generateText,
+  type LanguageModel,
+  stepCountIs,
+  type ToolSet,
+} from "ai";
 import { buildSystemPrompt, buildUserPrompt, extractTitle } from "./prompt.ts";
+import { convertToTools } from "./tools.ts";
 import type { MediaType, TranslateOptions, Translation } from "./types.ts";
+
+/**
+ * Gathers context from all required context sources.
+ *
+ * @param sources The context sources to gather from.
+ * @param signal Optional abort signal.
+ * @returns The gathered context results.
+ */
+async function gatherRequiredContext(
+  sources: readonly ContextSource[],
+  signal?: AbortSignal,
+): Promise<readonly ContextResult[]> {
+  const requiredSources = sources.filter((s) => s.mode === "required");
+  if (requiredSources.length === 0) {
+    return [];
+  }
+
+  const results: ContextResult[] = [];
+  for (const source of requiredSources) {
+    signal?.throwIfAborted();
+    const result = await source.gather({ signal });
+    results.push(result);
+  }
+  return results;
+}
+
+/**
+ * Combines gathered context results into a single string.
+ *
+ * @param results The context results to combine.
+ * @returns The combined context string.
+ */
+function combineContextResults(results: readonly ContextResult[]): string {
+  return results
+    .map((r) => r.content)
+    .filter((c) => c.trim().length > 0)
+    .join("\n\n");
+}
 
 export type {
   ChunkingProgress,
@@ -34,6 +85,8 @@ function getDefaultChunker(_mediaType?: MediaType) {
  * @param model The language model to use.
  * @param systemPrompt The system prompt.
  * @param text The text to translate.
+ * @param tools Optional tools for passive context sources.
+ * @param hasPassiveSources Whether passive sources are present.
  * @param signal Optional abort signal.
  * @returns The translation result.
  */
@@ -41,6 +94,8 @@ async function translateChunk(
   model: LanguageModel,
   systemPrompt: string,
   text: string,
+  tools?: ToolSet,
+  hasPassiveSources?: boolean,
   signal?: AbortSignal,
 ): Promise<{ text: string; tokenUsed: number }> {
   const userPrompt = buildUserPrompt(text);
@@ -48,6 +103,8 @@ async function translateChunk(
     model,
     system: systemPrompt,
     prompt: userPrompt,
+    tools,
+    stopWhen: hasPassiveSources ? stepCountIs(10) : undefined,
     abortSignal: signal,
   });
   return {
@@ -81,13 +138,30 @@ export async function translate(
   // For now, use the first model if multiple are provided
   const selectedModel = Array.isArray(model) ? model[0] : model;
 
+  // Gather context from required sources
+  let gatheredContext = "";
+  if (options?.contextSources != null && options.contextSources.length > 0) {
+    options?.onProgress?.({ stage: "gatheringContext", progress: 0 });
+    const contextResults = await gatherRequiredContext(
+      options.contextSources,
+      options?.signal,
+    );
+    gatheredContext = combineContextResults(contextResults);
+    options?.onProgress?.({ stage: "gatheringContext", progress: 1 });
+  }
+
+  // Combine gathered context with user-provided context
+  const combinedContext = [options?.context, gatheredContext]
+    .filter((c) => c != null && c.trim().length > 0)
+    .join("\n\n");
+
   // Build the system prompt
   const systemPrompt = buildSystemPrompt(targetLanguage, {
     sourceLanguage: options?.sourceLanguage,
     tone: options?.tone,
     domain: options?.domain,
     mediaType: options?.mediaType,
-    context: options?.context,
+    context: combinedContext || undefined,
     glossary: options?.glossary,
   });
 
@@ -113,6 +187,19 @@ export async function translate(
     options?.onProgress?.({ stage: "chunking", progress: 1 });
   }
 
+  // Extract passive sources for tool calling
+  const passiveSources = (options?.contextSources ?? []).filter(
+    (s): s is PassiveContextSource<unknown> => s.mode === "passive",
+  );
+
+  // Convert passive sources to AI SDK tools if any exist
+  let tools: ToolSet | undefined;
+  if (passiveSources.length > 0) {
+    options?.onProgress?.({ stage: "prompting", progress: 0 });
+    tools = await convertToTools(passiveSources, options?.signal);
+    options?.onProgress?.({ stage: "prompting", progress: 1 });
+  }
+
   // If no chunking or single chunk, translate directly
   if (chunks.length <= 1) {
     const userPrompt = buildUserPrompt(text, options?.title);
@@ -122,6 +209,8 @@ export async function translate(
       model: selectedModel,
       system: systemPrompt,
       prompt: userPrompt,
+      tools,
+      stopWhen: passiveSources.length > 0 ? stepCountIs(10) : undefined,
       abortSignal: options?.signal,
     });
 
@@ -156,6 +245,8 @@ export async function translate(
       selectedModel,
       systemPrompt,
       chunks[i].content,
+      tools,
+      passiveSources.length > 0,
       options?.signal,
     );
 

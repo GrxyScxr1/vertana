@@ -257,6 +257,204 @@ if (hasTestModel() || !("Bun" in globalThis)) {
         assert.ok(!progressCalls.includes("chunking"));
         assert.ok(progressCalls.includes("translating"));
       });
+
+      it("gathers context from required context sources", async () => {
+        const model = await getModel();
+        let gatherCalled = false;
+
+        const result = await translate(model, "ko", "The author wrote this.", {
+          chunker: null,
+          contextSources: [
+            {
+              name: "author-bio",
+              description: "Provides author biography",
+              mode: "required",
+              gather() {
+                gatherCalled = true;
+                return Promise.resolve({
+                  content: "The author is a famous Korean novelist.",
+                });
+              },
+            },
+          ],
+        });
+
+        assert.ok(gatherCalled, "Context source should be called");
+        assert.ok(result.text.length > 0);
+      });
+
+      it("reports gatheringContext progress", async () => {
+        const model = await getModel();
+        const progressCalls: string[] = [];
+
+        await translate(model, "ko", "Hello", {
+          chunker: null,
+          contextSources: [
+            {
+              name: "test-source",
+              description: "Test source",
+              mode: "required",
+              gather() {
+                return Promise.resolve({ content: "Test context" });
+              },
+            },
+          ],
+          onProgress: (progress) => {
+            progressCalls.push(progress.stage);
+          },
+        });
+
+        assert.ok(
+          progressCalls.includes("gatheringContext"),
+          "Should report gatheringContext stage",
+        );
+      });
+
+      it("combines context from multiple sources", async () => {
+        const model = await getModel();
+        const gatheredSources: string[] = [];
+
+        await translate(model, "ko", "Hello", {
+          chunker: null,
+          contextSources: [
+            {
+              name: "source-1",
+              description: "First source",
+              mode: "required",
+              gather() {
+                gatheredSources.push("source-1");
+                return Promise.resolve({ content: "Context from source 1" });
+              },
+            },
+            {
+              name: "source-2",
+              description: "Second source",
+              mode: "required",
+              gather() {
+                gatheredSources.push("source-2");
+                return Promise.resolve({ content: "Context from source 2" });
+              },
+            },
+          ],
+        });
+
+        assert.deepEqual(gatheredSources, ["source-1", "source-2"]);
+      });
+
+      it("skips passive context sources during required gathering", async () => {
+        const model = await getModel();
+        let requiredCalled = false;
+        let passiveCalled = false;
+
+        // Use Valibot for a real StandardSchema implementation
+        const { object, string } = await import("valibot");
+        const paramsSchema = object({ query: string() });
+
+        await translate(model, "ko", "Hello", {
+          chunker: null,
+          contextSources: [
+            {
+              name: "required-source",
+              description: "Required source",
+              mode: "required",
+              gather() {
+                requiredCalled = true;
+                return Promise.resolve({ content: "Required context" });
+              },
+            },
+            {
+              name: "passive-source",
+              description: "Passive source",
+              mode: "passive",
+              parameters: paramsSchema,
+              gather() {
+                passiveCalled = true;
+                return Promise.resolve({ content: "Should not be called" });
+              },
+            },
+          ],
+        });
+
+        // Required source should be called, passive should not
+        assert.ok(requiredCalled, "Required source should be called");
+        assert.ok(!passiveCalled, "Passive source should not be called");
+      });
+
+      it("invokes passive context source as tool when LLM requests it", async () => {
+        const model = await getModel();
+
+        // Use Valibot schema for testing (it implements StandardSchema)
+        const { object, string, pipe, minLength } = await import("valibot");
+        const paramsSchema = object({
+          authorName: pipe(string(), minLength(1)),
+        });
+
+        const result = await translate(
+          model,
+          "ko",
+          "The author wrote a famous novel about Korean history.",
+          {
+            chunker: null,
+            contextSources: [
+              {
+                name: "author-lookup",
+                description:
+                  "Look up information about an author by their name. " +
+                  "Use this when you need background information about " +
+                  "the author to provide better translation context.",
+                mode: "passive",
+                parameters: paramsSchema,
+                gather(params: { authorName: string }) {
+                  return Promise.resolve({
+                    content:
+                      `${params.authorName} is a renowned Korean novelist ` +
+                      "known for historical fiction.",
+                  });
+                },
+              },
+            ],
+          },
+        );
+
+        // The LLM should have called the tool at some point
+        assert.ok(result.text.length > 0);
+        // Note: Whether the tool is called depends on the LLM's decision
+        // This test verifies the infrastructure works when called
+      });
+
+      it("reports prompting progress stage for passive sources", async () => {
+        const model = await getModel();
+        const progressStages: string[] = [];
+
+        const { object, string } = await import("valibot");
+        const paramsSchema = object({ query: string() });
+
+        await translate(model, "ko", "Hello world", {
+          chunker: null,
+          contextSources: [
+            {
+              name: "lookup",
+              description: "Look up additional context",
+              mode: "passive",
+              parameters: paramsSchema,
+              gather() {
+                return Promise.resolve({ content: "Some context" });
+              },
+            },
+          ],
+          onProgress: (progress) => {
+            if (!progressStages.includes(progress.stage)) {
+              progressStages.push(progress.stage);
+            }
+          },
+        });
+
+        // Should have prompting stage when passive sources are present
+        assert.ok(
+          progressStages.includes("prompting"),
+          `Expected prompting stage, got: ${progressStages.join(", ")}`,
+        );
+      });
     },
   );
 }
