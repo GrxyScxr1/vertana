@@ -134,6 +134,26 @@ This project follows test-driven development (TDD) practices:
     test that reproduces the bug.  Confirm that the test fails, then fix the
     bug and verify the test passes.
 
+### Commit messages
+
+ -  Do not use Conventional Commits (no `fix:`, `feat:`, etc. prefixes).
+    Keep the first line under 50 characters when possible.
+ -  Focus on *why* the change was made, not just *what* changed.
+ -  When referencing issues or PRs, use permalink URLs instead of just
+    numbers (e.g., `#123`).  This preserves context if the repository
+    is moved later.
+ -  When listing items after a colon, add a blank line after the colon:
+
+    ~~~~
+    This commit includes the following changes:
+
+    - Added foo
+    - Fixed bar
+    ~~~~
+
+ -  When using LLMs or coding agents, include credit via `Co-Authored-By:`.
+    Include a permalink to the agent session if available.
+
 
 Code style
 ----------
