@@ -1,10 +1,12 @@
-export type {
-  ContextResult,
-  ContextSource,
-  ContextSourceFactory,
-  ContextSourceGatherOptions,
-  PassiveContextSource,
-  RequiredContextSource,
+export {
+  combineContextResults,
+  type ContextResult,
+  type ContextSource,
+  type ContextSourceFactory,
+  type ContextSourceGatherOptions,
+  gatherRequiredContext,
+  type PassiveContextSource,
+  type RequiredContextSource,
 } from "./context.ts";
 export {
   evaluate,

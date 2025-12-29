@@ -1,11 +1,11 @@
 import {
   type Chunk,
-  type ContextResult,
-  type ContextSource,
+  combineContextResults,
   countTokens,
   createHtmlChunker,
   createMarkdownChunker,
   extractTitle,
+  gatherRequiredContext,
   type Glossary,
   type PassiveContextSource,
   translateChunks,
@@ -21,37 +21,6 @@ import type {
   TranslateOptions,
   Translation,
 } from "./types.ts";
-
-/**
- * Gathers context from all required context sources.
- */
-async function gatherRequiredContext(
-  sources: readonly ContextSource[],
-  signal?: AbortSignal,
-): Promise<readonly ContextResult[]> {
-  const requiredSources = sources.filter((s) => s.mode === "required");
-  if (requiredSources.length === 0) {
-    return [];
-  }
-
-  const results: ContextResult[] = [];
-  for (const source of requiredSources) {
-    signal?.throwIfAborted();
-    const result = await source.gather({ signal });
-    results.push(result);
-  }
-  return results;
-}
-
-/**
- * Combines gathered context results into a single string.
- */
-function combineContextResults(results: readonly ContextResult[]): string {
-  return results
-    .map((r) => r.content)
-    .filter((c) => c.trim().length > 0)
-    .join("\n\n");
-}
 
 export type {
   BestOfNOptions,

@@ -146,3 +146,43 @@ export type ContextSourceFactory<
   TOptions,
   TParams = unknown,
 > = (options: TOptions) => ContextSource<TParams>;
+
+/**
+ * Gathers context from all required context sources.
+ *
+ * @param sources The context sources to gather from.
+ * @param signal An optional abort signal to cancel the operation.
+ * @returns A promise that resolves to the gathered context results.
+ */
+export async function gatherRequiredContext(
+  sources: readonly ContextSource[],
+  signal?: AbortSignal,
+): Promise<readonly ContextResult[]> {
+  const requiredSources = sources.filter((s) => s.mode === "required");
+  if (requiredSources.length === 0) {
+    return [];
+  }
+
+  const results: ContextResult[] = [];
+  for (const source of requiredSources) {
+    signal?.throwIfAborted();
+    const result = await source.gather({ signal });
+    results.push(result);
+  }
+  return results;
+}
+
+/**
+ * Combines gathered context results into a single string.
+ *
+ * @param results The context results to combine.
+ * @returns The combined context as a single string.
+ */
+export function combineContextResults(
+  results: readonly ContextResult[],
+): string {
+  return results
+    .map((r) => r.content)
+    .filter((c) => c.trim().length > 0)
+    .join("\n\n");
+}
