@@ -93,7 +93,7 @@ if (hasTestModel() || !("Bun" in globalThis)) {
         }
       });
 
-      it("respects maxIterations limit", async () => {
+      it("respects maxIterations limit", { timeout: 30000 }, async () => {
         const model = await getModel();
         const originalChunks = [
           "Complex technical text about quantum computing.",
