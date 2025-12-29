@@ -44,7 +44,7 @@
       ],
       "command": "deno check && deno lint && deno fmt --check && deno publish --dry-run --allow-dirty"
     },
-    "test": "deno test --allow-env --allow-net --env-file=.env.test",
+    "test": "deno test --allow-env --allow-net --env-file=.env.test --parallel",
     "test:node": "pnpm run -r test",
     "test:bun": "pnpm run -r test:bun",
     "test-all": {

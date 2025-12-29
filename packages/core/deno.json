@@ -26,12 +26,12 @@
   ],
   "tasks": {
     "build": "pnpm build",
-    "test": "deno test --allow-env",
+    "test": "deno test --allow-env --parallel",
     "test:node": {
       "dependencies": [
         "build"
       ],
-      "command": "node --experimental-transform-types --test"
+      "command": "node --experimental-transform-types --test --test-concurrency=4"
     },
     "test:bun": {
       "dependencies": [

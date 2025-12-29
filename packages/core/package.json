@@ -200,7 +200,7 @@
     "build": "tsdown",
     "prepack": "tsdown",
     "prepublish": "tsdown",
-    "test": "tsdown && node --experimental-transform-types --test",
+    "test": "tsdown && node --experimental-transform-types --test --test-concurrency=4",
     "test:bun": "tsdown && bun test",
     "test:deno": "deno test --allow-env",
     "test-all": "tsdown && node --experimental-transform-types --test && bun test && deno test"
