@@ -77,3 +77,9 @@ export {
   type TranslateChunksOptions,
   type TranslatedChunkEvent,
 } from "./translate.ts";
+export {
+  accumulateEvent,
+  type AccumulatorState,
+  createInitialAccumulatorState,
+  maxByValue,
+} from "./accumulator.ts";

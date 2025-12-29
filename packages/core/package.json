@@ -50,6 +50,14 @@
       "require": "./dist/index.cjs",
       "import": "./dist/index.js"
     },
+    "./accumulator": {
+      "types": {
+        "require": "./dist/accumulator.d.cts",
+        "import": "./dist/accumulator.d.ts"
+      },
+      "require": "./dist/accumulator.cjs",
+      "import": "./dist/accumulator.js"
+    },
     "./chunking": {
       "types": {
         "require": "./dist/chunking.d.cts",

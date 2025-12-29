@@ -1,16 +1,17 @@
 import { getLogger } from "@logtape/logtape";
 import {
+  accumulateEvent,
   chunkText,
   combineContextResults,
+  createInitialAccumulatorState,
   createToolSet,
-  extractTitle,
   gatherRequiredContext,
   type Glossary,
   type PassiveContextSource,
   translateChunks,
-  type TranslateChunksComplete,
 } from "@vertana/core";
 import type { LanguageModel, ToolSet } from "ai";
+import { buildTranslation } from "./result.ts";
 import type {
   BestOfNOptions,
   DynamicGlossaryOptions,
@@ -149,16 +150,14 @@ export async function translate(
     totalChunks,
   });
 
-  let result: TranslateChunksComplete | undefined;
-  let totalQualityScore = 0;
-  let qualityScoreCount = 0;
-  const modelWinCounts = new Map<LanguageModel, number>();
-
   // Normalize refinement options
   const refinementOptions: RefinementOptions | null =
     options?.refinement != null && options.refinement !== false
       ? options.refinement === true ? {} : options.refinement
       : null;
+
+  // 5. Process translation stream
+  let state = createInitialAccumulatorState();
 
   for await (
     const event of translateChunks(sourceChunks, {
@@ -178,6 +177,8 @@ export async function translate(
       signal: options?.signal,
     })
   ) {
+    state = accumulateEvent(state, event);
+
     if (event.type === "chunk") {
       options?.onProgress?.({
         stage: "translating",
@@ -195,17 +196,6 @@ export async function translate(
         });
       }
 
-      if (event.qualityScore != null) {
-        totalQualityScore += event.qualityScore;
-        qualityScoreCount++;
-      }
-      if (event.selectedModel != null) {
-        modelWinCounts.set(
-          event.selectedModel,
-          (modelWinCounts.get(event.selectedModel) ?? 0) + 1,
-        );
-      }
-
       // Report refining start after last chunk if refinement is enabled
       if (event.index === totalChunks - 1 && refinementOptions != null) {
         options?.onProgress?.({
@@ -215,63 +205,32 @@ export async function translate(
           totalChunks,
         });
       }
-    } else {
-      result = event;
     }
   }
 
-  if (result == null) {
-    throw new Error("Translation did not complete.");
-  }
-
   // Report refining completion if refinement was used
-  if (result.refinementIterations != null) {
+  if (state.complete?.refinementIterations != null) {
     options?.onProgress?.({
       stage: "refining",
       progress: 1,
-      iteration: result.refinementIterations,
+      iteration: state.complete.refinementIterations,
       maxIterations: refinementOptions?.maxIterations ?? 3,
       totalChunks,
     });
   }
 
-  // Determine winning model
-  let winningModel: LanguageModel | undefined;
-  if (modelWinCounts.size > 0) {
-    let maxWins = 0;
-    for (const [m, wins] of modelWinCounts) {
-      if (wins > maxWins) {
-        maxWins = wins;
-        winningModel = m;
-      }
-    }
-  }
-
-  // Use refinement quality score if available, otherwise best-of-N average
-  const qualityScore = result.qualityScore ??
-    (qualityScoreCount > 0 ? totalQualityScore / qualityScoreCount : undefined);
-
-  // 6. Return result
-  const processingTime = performance.now() - startTime;
-  const combinedText = result.translations.join("\n\n");
-
-  logger.info("Translation completed.", {
-    processingTimeMs: processingTime,
-    tokensUsed: result.totalTokensUsed,
-    qualityScore,
-    chunkCount: result.translations.length,
+  // 6. Build and return result
+  const result = buildTranslation(state, {
+    startTime,
+    extractTitle: options?.title != null,
   });
 
-  return {
-    text: combinedText,
-    title: options?.title != null ? extractTitle(combinedText) : undefined,
-    tokenUsed: result.totalTokensUsed,
-    processingTime,
-    qualityScore,
-    refinementIterations: result.refinementIterations,
-    selectedModel: winningModel,
-    accumulatedGlossary: result.accumulatedGlossary.length > 0
-      ? result.accumulatedGlossary
-      : undefined,
-  };
+  logger.info("Translation completed.", {
+    processingTimeMs: result.processingTime,
+    tokensUsed: result.tokenUsed,
+    qualityScore: result.qualityScore,
+    chunkCount: state.complete?.translations.length ?? 0,
+  });
+
+  return result;
 }
