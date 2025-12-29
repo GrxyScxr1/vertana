@@ -100,9 +100,12 @@ Architecture
 
 ### Package structure
 
- -  *@vertana/core* (*packages/core/*): Shared types and common functionality.
+ -  *@vertana/core* (*packages/core/*): Core translation logic and utilities.
+    Contains chunking, evaluation, refinement, selection, and translation
+    orchestration (`translateChunks`).
  -  *@vertana/facade* (*packages/facade/*): High-level facade for translation
-    tasks.  Contains the main `translate()` function API.
+    tasks.  Contains the main `translate()` function API, which wraps
+    the core functionality with a simple interface.
 
 ### Dual publishing
 

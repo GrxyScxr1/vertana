@@ -31,6 +31,7 @@ Features
  -  Iterative refinement with chunk-level and boundary evaluation
  -  Best-of-N selection with multiple models (parallel per-chunk evaluation)
  -  HTML chunker with block element detection and attribute handling
+ -  Dynamic glossary accumulation for consistent terminology across chunks
 
 ### Planned
  -  Adaptive context window detection
@@ -46,7 +47,7 @@ of the available packages:
 
 | Package                              | JSR                        | npm                        | Description                                  |
 | ------------------------------------ | -------------------------- | -------------------------- | -------------------------------------------- |
-| [@vertana/core](/packages/core/)     | [JSR][jsr:@vertana/core]   | [npm][npm:@vertana/core]   | Shared types and common functionality        |
+| [@vertana/core](/packages/core/)     | [JSR][jsr:@vertana/core]   | [npm][npm:@vertana/core]   | Core translation logic and utilities         |
 | [@vertana/facade](/packages/facade/) | [JSR][jsr:@vertana/facade] | [npm][npm:@vertana/facade] | High-level facade for easy translation tasks |
 
 [jsr:@vertana/core]: https://jsr.io/@vertana/core
