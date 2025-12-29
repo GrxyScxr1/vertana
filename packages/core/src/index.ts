@@ -18,6 +18,11 @@ export {
   type TranslationIssueLocation,
   type TranslationIssueType,
 } from "./evaluation.ts";
+export {
+  chunkText,
+  type ChunkTextOptions,
+  getDefaultChunker,
+} from "./chunking.ts";
 export type {
   Chunk,
   Chunker,

@@ -1,9 +1,6 @@
 import {
-  type Chunk,
+  chunkText,
   combineContextResults,
-  countTokens,
-  createHtmlChunker,
-  createMarkdownChunker,
   createToolSet,
   extractTitle,
   gatherRequiredContext,
@@ -16,7 +13,6 @@ import type { LanguageModel, ToolSet } from "ai";
 import type {
   BestOfNOptions,
   DynamicGlossaryOptions,
-  MediaType,
   RefinementOptions,
   TranslateOptions,
   Translation,
@@ -40,16 +36,6 @@ export type {
 } from "./types.ts";
 
 export { extractTerms } from "@vertana/core";
-
-/**
- * Gets the default chunker based on media type.
- */
-function getDefaultChunker(mediaType?: MediaType) {
-  if (mediaType === "text/html") {
-    return createHtmlChunker();
-  }
-  return createMarkdownChunker();
-}
 
 /**
  * Translates the given text to the specified target language using the provided
@@ -104,22 +90,23 @@ export async function translate(
     .join("\n\n");
 
   // 3. Chunk text (or use text as single chunk)
-  const chunker = options?.chunker === null
-    ? null
-    : options?.chunker ?? getDefaultChunker(options?.mediaType);
+  const chunkingEnabled = options?.chunker !== null;
+  if (chunkingEnabled) {
+    options?.onProgress?.({ stage: "chunking", progress: 0 });
+  }
 
   const maxTokens = options?.contextWindow?.type === "explicit"
     ? options.contextWindow.maxTokens
     : 4096;
 
-  let chunks: readonly Chunk[] = [];
-  if (chunker != null) {
-    options?.onProgress?.({ stage: "chunking", progress: 0 });
-    chunks = await chunker(text, {
-      maxTokens,
-      countTokens,
-      signal: options?.signal,
-    });
+  const sourceChunks = await chunkText(text, {
+    chunker: options?.chunker,
+    mediaType: options?.mediaType,
+    maxTokens,
+    signal: options?.signal,
+  });
+
+  if (chunkingEnabled) {
     options?.onProgress?.({ stage: "chunking", progress: 1 });
   }
 
@@ -137,15 +124,9 @@ export async function translate(
 
   // Initial glossary from options
   const initialGlossary: Glossary = options?.glossary ?? [];
-
-  // 5. Determine source chunks
-  // If no chunks from chunker (chunker is null or text is small), use text as single chunk
-  const sourceChunks = chunks.length > 0
-    ? chunks.map((c) => c.content)
-    : [text];
   const totalChunks = sourceChunks.length;
 
-  // 6. Translate using translateChunks stream
+  // 5. Translate using translateChunks stream
   const modelsToUse = bestOfNOptions != null ? models : [primaryModel];
 
   options?.onProgress?.({
@@ -257,7 +238,7 @@ export async function translate(
   const qualityScore = result.qualityScore ??
     (qualityScoreCount > 0 ? totalQualityScore / qualityScoreCount : undefined);
 
-  // 7. Return result
+  // 6. Return result
   const processingTime = performance.now() - startTime;
   const combinedText = result.translations.join("\n\n");
 
