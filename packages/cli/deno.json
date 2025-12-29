@@ -1,0 +1,36 @@
+{
+  "name": "@vertana/cli",
+  "version": "0.1.0",
+  "license": "MIT",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "exclude": [
+    "dist/",
+    "tsdown.config.ts"
+  ],
+  "tasks": {
+    "build": "pnpm build",
+    "run": "deno run --allow-env --allow-net --allow-read --allow-write --allow-ffi --allow-sys src/index.ts",
+    "test": "deno test --allow-env --allow-net --allow-read --allow-write --allow-ffi --allow-sys --parallel",
+    "test:node": {
+      "dependencies": [
+        "build"
+      ],
+      "command": "node --experimental-transform-types --test --test-concurrency=4"
+    },
+    "test:bun": {
+      "dependencies": [
+        "build"
+      ],
+      "command": "bun test"
+    },
+    "test-all": {
+      "dependencies": [
+        "test",
+        "test:node",
+        "test:bun"
+      ]
+    }
+  }
+}

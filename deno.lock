@@ -1,7 +1,11 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@logtape/logtape@^1.2.2": "1.3.5",
     "jsr:@logtape/logtape@^1.3.5": "1.3.5",
+    "jsr:@optique/core@~0.8.3": "0.8.3",
+    "jsr:@optique/logtape@~0.8.3": "0.8.3",
+    "jsr:@optique/run@~0.8.3": "0.8.3",
     "jsr:@std/fs@^1.0.21": "1.0.21",
     "jsr:@std/internal@^1.0.12": "1.0.12",
     "jsr:@std/path@^1.1.4": "1.1.4",
@@ -9,6 +13,7 @@
     "npm:@ai-sdk/google@^3.0.1": "3.0.1_zod@4.2.1",
     "npm:@ai-sdk/openai@^3.0.1": "3.0.1_zod@4.2.1",
     "npm:@ai-sdk/provider@3": "3.0.0",
+    "npm:@napi-rs/keyring@^1.2.0": "1.2.0",
     "npm:@standard-community/standard-json@~0.3.5": "0.3.5_@standard-schema+spec@1.1.0_@types+json-schema@7.0.15_@valibot+to-json-schema@1.5.0__valibot@1.2.0_quansync@0.2.11_valibot@1.2.0_zod@4.2.1",
     "npm:@standard-schema/spec@1": "1.1.0",
     "npm:@types/node@*": "22.15.15",
@@ -25,6 +30,22 @@
   "jsr": {
     "@logtape/logtape@1.3.5": {
       "integrity": "a5cdb130daf1a9d384006b0f850cc4443bfc2e163dadc6fa667875e79770beb3"
+    },
+    "@optique/core@0.8.3": {
+      "integrity": "8447772f628c6c35dde5c62ce8d1d59823cfa2b223e6ac949ac936a3eb402076"
+    },
+    "@optique/logtape@0.8.3": {
+      "integrity": "4f59e86b30835ec3b6aef54a185acbce10e8a1e0213160b6271d0b8943a55177",
+      "dependencies": [
+        "jsr:@logtape/logtape@^1.2.2",
+        "jsr:@optique/core"
+      ]
+    },
+    "@optique/run@0.8.3": {
+      "integrity": "4f9b53286faf12e35ef5f2f2c5158d74731f426d4eed35d7e88ed2f26553c431",
+      "dependencies": [
+        "jsr:@optique/core"
+      ]
     },
     "@std/fs@1.0.21": {
       "integrity": "d720fe1056d78d43065a4d6e0eeb2b19f34adb8a0bc7caf3a4dbf1d4178252cd",
@@ -90,6 +111,83 @@
       "integrity": "sha512-m9ka3ptkPQbaHHZHqDXDF9C9B5/Mav0KTdky1k2HZ3/nrW2t1AgObxIVPyGDWQNS9FXT/FS6PIoSjpcP/No8rQ==",
       "dependencies": [
         "json-schema"
+      ]
+    },
+    "@napi-rs/keyring-darwin-arm64@1.2.0": {
+      "integrity": "sha512-CA83rDeyONDADO25JLZsh3eHY8yTEtm/RS6ecPsY+1v+dSawzT9GywBMu2r6uOp1IEhQs/xAfxgybGAFr17lSA==",
+      "os": ["darwin"],
+      "cpu": ["arm64"]
+    },
+    "@napi-rs/keyring-darwin-x64@1.2.0": {
+      "integrity": "sha512-dBHjtKRCj4ByfnfqIKIJLo3wueQNJhLRyuxtX/rR4K/XtcS7VLlRD01XXizjpre54vpmObj63w+ZpHG+mGM8uA==",
+      "os": ["darwin"],
+      "cpu": ["x64"]
+    },
+    "@napi-rs/keyring-freebsd-x64@1.2.0": {
+      "integrity": "sha512-DPZFr11pNJSnaoh0dzSUNF+T6ORhy3CkzUT3uGixbA71cAOPJ24iG8e8QrLOkuC/StWrAku3gBnth2XMWOcR3Q==",
+      "os": ["freebsd"],
+      "cpu": ["x64"]
+    },
+    "@napi-rs/keyring-linux-arm-gnueabihf@1.2.0": {
+      "integrity": "sha512-8xv6DyEMlvRdqJzp4F39RLUmmTQsLcGYYv/3eIfZNZN1O5257tHxTrFYqAsny659rJJK2EKeSa7PhrSibQqRWQ==",
+      "os": ["linux"],
+      "cpu": ["arm"]
+    },
+    "@napi-rs/keyring-linux-arm64-gnu@1.2.0": {
+      "integrity": "sha512-Pu2V6Py+PBt7inryEecirl+t+ti8bhZphjP+W68iVaXHUxLdWmkgL9KI1VkbRHbx5k8K5Tew9OP218YfmVguIA==",
+      "os": ["linux"],
+      "cpu": ["arm64"]
+    },
+    "@napi-rs/keyring-linux-arm64-musl@1.2.0": {
+      "integrity": "sha512-8TDymrpC4P1a9iDEaegT7RnrkmrJN5eNZh3Im3UEV5PPYGtrb82CRxsuFohthCWQW81O483u1bu+25+XA4nKUw==",
+      "os": ["linux"],
+      "cpu": ["arm64"]
+    },
+    "@napi-rs/keyring-linux-riscv64-gnu@1.2.0": {
+      "integrity": "sha512-awsB5XI1MYL7fwfjMDGmKOWvNgJEO7mM7iVEMS0fO39f0kVJnOSjlu7RHcXAF0LOx+0VfF3oxbWqJmZbvRCRHw==",
+      "os": ["linux"],
+      "cpu": ["riscv64"]
+    },
+    "@napi-rs/keyring-linux-x64-gnu@1.2.0": {
+      "integrity": "sha512-8E+7z4tbxSJXxIBqA+vfB1CGajpCDRyTyqXkBig5NtASrv4YXcntSo96Iah2QDR5zD3dSTsmbqJudcj9rKKuHQ==",
+      "os": ["linux"],
+      "cpu": ["x64"]
+    },
+    "@napi-rs/keyring-linux-x64-musl@1.2.0": {
+      "integrity": "sha512-8RZ8yVEnmWr/3BxKgBSzmgntI7lNEsY7xouNfOsQkuVAiCNmxzJwETspzK3PQ2FHtDxgz5vHQDEBVGMyM4hUHA==",
+      "os": ["linux"],
+      "cpu": ["x64"]
+    },
+    "@napi-rs/keyring-win32-arm64-msvc@1.2.0": {
+      "integrity": "sha512-AoqaDZpQ6KPE19VBLpxyORcp+yWmHI9Xs9Oo0PJ4mfHma4nFSLVdhAubJCxdlNptHe5va7ghGCHj3L9Akiv4cQ==",
+      "os": ["win32"],
+      "cpu": ["arm64"]
+    },
+    "@napi-rs/keyring-win32-ia32-msvc@1.2.0": {
+      "integrity": "sha512-EYL+EEI6bCsYi3LfwcQdnX3P/R76ENKNn+3PmpGheBsUFLuh0gQuP7aMVHM4rTw6UVe+L3vCLZSptq/oeacz0A==",
+      "os": ["win32"],
+      "cpu": ["ia32"]
+    },
+    "@napi-rs/keyring-win32-x64-msvc@1.2.0": {
+      "integrity": "sha512-xFlx/TsmqmCwNU9v+AVnEJgoEAlBYgzFF5Ihz1rMpPAt4qQWWkMd4sCyM1gMJ1A/GnRqRegDiQpwaxGUHFtFbA==",
+      "os": ["win32"],
+      "cpu": ["x64"]
+    },
+    "@napi-rs/keyring@1.2.0": {
+      "integrity": "sha512-d0d4Oyxm+v980PEq1ZH2PmS6cvpMIRc17eYpiU47KgW+lzxklMu6+HOEOPmxrpnF/XQZ0+Q78I2mgMhbIIo/dg==",
+      "optionalDependencies": [
+        "@napi-rs/keyring-darwin-arm64",
+        "@napi-rs/keyring-darwin-x64",
+        "@napi-rs/keyring-freebsd-x64",
+        "@napi-rs/keyring-linux-arm-gnueabihf",
+        "@napi-rs/keyring-linux-arm64-gnu",
+        "@napi-rs/keyring-linux-arm64-musl",
+        "@napi-rs/keyring-linux-riscv64-gnu",
+        "@napi-rs/keyring-linux-x64-gnu",
+        "@napi-rs/keyring-linux-x64-musl",
+        "@napi-rs/keyring-win32-arm64-msvc",
+        "@napi-rs/keyring-win32-ia32-msvc",
+        "@napi-rs/keyring-win32-x64-msvc"
       ]
     },
     "@opentelemetry/api@1.9.0": {
@@ -213,12 +311,16 @@
   "workspace": {
     "dependencies": [
       "jsr:@logtape/logtape@^1.3.5",
+      "jsr:@optique/core@~0.8.3",
+      "jsr:@optique/logtape@~0.8.3",
+      "jsr:@optique/run@~0.8.3",
       "jsr:@std/fs@^1.0.21",
       "jsr:@std/path@^1.1.4",
       "npm:@ai-sdk/anthropic@^3.0.1",
       "npm:@ai-sdk/google@^3.0.1",
       "npm:@ai-sdk/openai@^3.0.1",
       "npm:@ai-sdk/provider@3",
+      "npm:@napi-rs/keyring@^1.2.0",
       "npm:@standard-community/standard-json@~0.3.5",
       "npm:@standard-schema/spec@1",
       "npm:@valibot/to-json-schema@^1.5.0",

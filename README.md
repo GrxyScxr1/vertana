@@ -49,8 +49,11 @@ of the available packages:
 | ------------------------------------ | -------------------------- | -------------------------- | -------------------------------------------- |
 | [@vertana/core](/packages/core/)     | [JSR][jsr:@vertana/core]   | [npm][npm:@vertana/core]   | Core translation logic and utilities         |
 | [@vertana/facade](/packages/facade/) | [JSR][jsr:@vertana/facade] | [npm][npm:@vertana/facade] | High-level facade for easy translation tasks |
+| [@vertana/cli](/packages/cli/)       | [JSR][jsr:@vertana/cli]    | [npm][npm:@vertana/cli]    | Command-line interface for translation       |
 
 [jsr:@vertana/core]: https://jsr.io/@vertana/core
 [npm:@vertana/core]: https://www.npmjs.com/package/@vertana/core
 [jsr:@vertana/facade]: https://jsr.io/@vertana/facade
 [npm:@vertana/facade]: https://www.npmjs.com/package/@vertana/facade
+[jsr:@vertana/cli]: https://jsr.io/@vertana/cli
+[npm:@vertana/cli]: https://www.npmjs.com/package/@vertana/cli

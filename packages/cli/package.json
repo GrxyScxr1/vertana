@@ -1,0 +1,92 @@
+{
+  "name": "@vertana/cli",
+  "version": "0.1.0",
+  "description": "Command-line interface for Vertana translation",
+  "keywords": [
+    "LLM",
+    "translation",
+    "natural language processing",
+    "NLP",
+    "language model",
+    "CLI"
+  ],
+  "license": "MIT",
+  "author": {
+    "name": "Hong Minhee",
+    "email": "hong@minhee.org",
+    "url": "https://hongminhee.org/"
+  },
+  "homepage": "https://vertana.org/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dahlia/vertana.git",
+    "directory": "packages/cli"
+  },
+  "bugs": {
+    "url": "https://github.com/dahlia/vertana/issues"
+  },
+  "funding": [
+    "https://github.com/sponsors/dahlia"
+  ],
+  "engines": {
+    "node": ">=20.0.0",
+    "bun": ">=1.2.0",
+    "deno": ">=2.3.0"
+  },
+  "files": [
+    "dist/",
+    "package.json",
+    "README.md"
+  ],
+  "type": "module",
+  "module": "./dist/index.mjs",
+  "main": "./dist/index.cjs",
+  "types": "./dist/index.d.mts",
+  "exports": {
+    ".": {
+      "types": {
+        "require": "./dist/index.d.cts",
+        "import": "./dist/index.d.mts"
+      },
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "bin": {
+    "vertana": "./dist/index.mjs"
+  },
+  "sideEffects": false,
+  "dependencies": {
+    "@logtape/logtape": "catalog:",
+    "@napi-rs/keyring": "catalog:",
+    "@optique/core": "catalog:",
+    "@optique/logtape": "catalog:",
+    "@optique/run": "catalog:",
+    "@vertana/facade": "workspace:"
+  },
+  "peerDependencies": {
+    "@ai-sdk/anthropic": "catalog:",
+    "@ai-sdk/google": "catalog:",
+    "@ai-sdk/openai": "catalog:",
+    "ai": "catalog:"
+  },
+  "devDependencies": {
+    "@ai-sdk/anthropic": "catalog:",
+    "@ai-sdk/google": "catalog:",
+    "@ai-sdk/openai": "catalog:",
+    "@types/node": "catalog:",
+    "ai": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "prepack": "tsdown",
+    "prepublish": "tsdown",
+    "run": "tsdown && node ./dist/index.mjs",
+    "test": "tsdown && node --experimental-transform-types --test --test-concurrency=4",
+    "test:bun": "tsdown && bun test",
+    "test:deno": "deno test --allow-env --allow-net --allow-read --allow-write --allow-ffi",
+    "test-all": "tsdown && node --experimental-transform-types --test && bun test && deno test"
+  }
+}

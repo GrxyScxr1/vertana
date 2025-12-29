@@ -321,6 +321,97 @@ Code style
 [LogTape LLM documentation]: https://logtape.org/llms.txt
 [structured logging]: https://logtape.org/manual/struct
 
+### CLI programs
+
+This project uses [Optique] for CLI parsing.  Refer to the [Optique LLM
+documentation] for detailed usage.
+
+ -  Use the `print()` and `printError()` functions from `@optique/run` instead
+    of `console.log()` or `console.error()` for user-facing messages:
+
+    ~~~~ typescript
+    import { print, printError } from "@optique/run";
+    import { message, text } from "@optique/core/message";
+
+    print(message`Configuration saved.`);
+    printError(message`File not found: ${text(filePath)}`, { exitCode: 1 });
+    ~~~~
+
+ -  Use semantic markup functions for proper formatting.  Available functions
+    include `metavar()` for placeholders, `commandLine()` for command examples,
+    `text()` for literal text, and `optionName()` for option flags:
+
+    ~~~~ typescript
+    import { commandLine, message, metavar, text } from "@optique/core/message";
+
+    print(message`No model configured.`);
+    print(
+      message`Run ${commandLine("vertana config model")} ${
+        metavar("PROVIDER:MODEL")
+      } to set one.`,
+    );
+    ~~~~
+
+ -  For output that needs to be pipeable to other commands (e.g., translation
+    results, data output), use `console.log()` to emit raw text without
+    formatting:
+
+    ~~~~ typescript
+    // Use print() for status messages
+    print(message`Translation complete.`);
+
+    // Use console.log() for actual output that may be piped
+    console.log(translatedText);
+    ~~~~
+
+ -  When formatting choice lists in error messages, build `Message` objects
+    dynamically instead of using `Intl.ListFormat`:
+
+    ~~~~ typescript
+    import { type Message, message } from "@optique/core/message";
+
+    let providerList: Message = [];
+    for (let i = 0; i < providerNames.length; i++) {
+      if (i > 0) {
+        providerList = [...providerList, ...message`, `];
+      }
+      providerList = [...providerList, ...message`${providerNames[i]}`];
+    }
+    return {
+      success: false,
+      error: message`Unsupported provider. Supported providers: ${providerList}.`,
+    };
+    ~~~~
+
+ -  Custom `ValueParser` implementations should return `Message` objects for
+    error messages with proper markup:
+
+    ~~~~ typescript
+    import type { ValueParser, ValueParserResult } from "@optique/core/valueparser";
+    import { message, metavar, text } from "@optique/core/message";
+
+    function glossaryEntry(): ValueParser<GlossaryEntry> {
+      return {
+        metavar: "TERM=TRANSLATION",
+        parse(input: string): ValueParserResult<GlossaryEntry> {
+          const index = input.indexOf("=");
+          if (index === -1) {
+            return {
+              success: false,
+              error: message`Invalid format. Expected ${metavar("TERM")}${
+                text("=")
+              }${metavar("TRANSLATION")}.`,
+            };
+          }
+          // ... rest of parsing logic
+        },
+      };
+    }
+    ~~~~
+
+[Optique]: https://optique.dev/
+[Optique LLM documentation]: https://optique.dev/llms.txt
+
 
 Writing style
 -------------
