@@ -6,13 +6,15 @@ export type {
   PassiveContextSource,
   RequiredContextSource,
 } from "./context.ts";
-export type {
-  EvaluationResult,
-  EvaluatorOptions,
-  TranslationEvaluator,
-  TranslationIssue,
-  TranslationIssueLocation,
-  TranslationIssueType,
+export {
+  evaluate,
+  type EvaluateOptions,
+  type EvaluationResult,
+  type EvaluatorOptions,
+  type TranslationEvaluator,
+  type TranslationIssue,
+  type TranslationIssueLocation,
+  type TranslationIssueType,
 } from "./evaluation.ts";
 export type {
   Chunk,

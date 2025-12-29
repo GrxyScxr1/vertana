@@ -27,10 +27,10 @@ Features
  -  Context gathering from external sources (agentic workflows)
      -  Required context sources: automatically invoked before translation
      -  Passive context sources: LLM-invoked tools using StandardSchema
+ -  Translation quality evaluation (accuracy, fluency, terminology, style)
 
 ### Planned
 
- -  Translation quality evaluation
  -  Iterative refinement (evaluate → fix → re-evaluate loop)
  -  Best-of-N selection with multiple models
  -  Adaptive context window detection

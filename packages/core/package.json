@@ -109,7 +109,8 @@
   },
   "sideEffects": false,
   "dependencies": {
-    "js-tiktoken": "catalog:"
+    "js-tiktoken": "catalog:",
+    "zod": "catalog:"
   },
   "peerDependencies": {
     "@standard-schema/spec": "catalog:",
