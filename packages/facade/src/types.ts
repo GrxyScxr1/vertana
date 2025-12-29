@@ -3,28 +3,12 @@ import type {
   ContextSource,
   ContextWindow,
   Glossary,
+  MediaType,
+  TranslationTone,
 } from "@vertana/core";
 import type { LanguageModel } from "ai";
 
-/**
- * The media type of the input text.
- *
- * - `"text/plain"`: Plain text
- * - `"text/html"`: HTML content
- * - `"text/markdown"`: Markdown content
- */
-export type MediaType = "text/plain" | "text/html" | "text/markdown";
-
-/**
- * The desired tone for the translated text.
- */
-export type TranslationTone =
-  | "formal"
-  | "informal"
-  | "technical"
-  | "casual"
-  | "professional"
-  | "literary";
+export type { MediaType, TranslationTone } from "@vertana/core";
 
 /**
  * Base progress information shared by all stages.

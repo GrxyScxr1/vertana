@@ -1,4 +1,4 @@
-import type { GlossaryEntry } from "@vertana/core";
+import type { GlossaryEntry } from "./glossary.ts";
 import { generateObject, type LanguageModel } from "ai";
 import { z } from "zod";
 

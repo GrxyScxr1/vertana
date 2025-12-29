@@ -13,7 +13,10 @@
     "./refine": "./src/refine.ts",
     "./select": "./src/select.ts",
     "./tokens": "./src/tokens.ts",
-    "./window": "./src/window.ts"
+    "./window": "./src/window.ts",
+    "./prompt": "./src/prompt.ts",
+    "./terms": "./src/terms.ts",
+    "./translate": "./src/translate.ts"
   },
   "exclude": [
     "dist/",

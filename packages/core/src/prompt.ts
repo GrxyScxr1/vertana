@@ -1,5 +1,24 @@
-import type { Glossary } from "@vertana/core";
-import type { MediaType, TranslationTone } from "./types.ts";
+import type { Glossary } from "./glossary.ts";
+
+/**
+ * The media type of the input text.
+ *
+ * - `"text/plain"`: Plain text
+ * - `"text/html"`: HTML content
+ * - `"text/markdown"`: Markdown content
+ */
+export type MediaType = "text/plain" | "text/html" | "text/markdown";
+
+/**
+ * The desired tone for the translated text.
+ */
+export type TranslationTone =
+  | "formal"
+  | "informal"
+  | "technical"
+  | "casual"
+  | "professional"
+  | "literary";
 
 const languageNames = new Intl.DisplayNames(["en"], { type: "language" });
 

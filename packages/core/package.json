@@ -129,6 +129,30 @@
       },
       "require": "./dist/window.cjs",
       "import": "./dist/window.js"
+    },
+    "./prompt": {
+      "types": {
+        "require": "./dist/prompt.d.cts",
+        "import": "./dist/prompt.d.ts"
+      },
+      "require": "./dist/prompt.cjs",
+      "import": "./dist/prompt.js"
+    },
+    "./terms": {
+      "types": {
+        "require": "./dist/terms.d.cts",
+        "import": "./dist/terms.d.ts"
+      },
+      "require": "./dist/terms.cjs",
+      "import": "./dist/terms.js"
+    },
+    "./translate": {
+      "types": {
+        "require": "./dist/translate.d.cts",
+        "import": "./dist/translate.d.ts"
+      },
+      "require": "./dist/translate.cjs",
+      "import": "./dist/translate.js"
     }
   },
   "sideEffects": false,

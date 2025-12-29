@@ -48,3 +48,23 @@ export {
   type SelectBestOptions,
   type SelectBestResult,
 } from "./select.ts";
+export {
+  buildSystemPrompt,
+  buildUserPrompt,
+  buildUserPromptWithContext,
+  extractTitle,
+  getLanguageName,
+  type MediaType,
+  type SystemPromptOptions,
+  type TranslatedChunk,
+  type TranslationTone,
+} from "./prompt.ts";
+export { extractTerms, type ExtractTermsOptions } from "./terms.ts";
+export {
+  type DynamicGlossaryOptions,
+  translateChunks,
+  type TranslateChunksComplete,
+  type TranslateChunksEvent,
+  type TranslateChunksOptions,
+  type TranslatedChunkEvent,
+} from "./translate.ts";

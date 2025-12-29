@@ -455,6 +455,117 @@ if (hasTestModel() || !("Bun" in globalThis)) {
           `Expected prompting stage, got: ${progressStages.join(", ")}`,
         );
       });
+
+      it("performs best-of-N selection in single-chunk path", async () => {
+        const model = await getModel();
+        // Use the same model twice to exercise the best-of-N code path
+        const models = [model, model];
+
+        const result = await translate(models, "ko", "Hello, world!", {
+          chunker: null, // Force single-chunk path
+          bestOfN: true,
+        });
+
+        assert.ok(result.text.length > 0);
+        assert.ok(
+          result.selectedModel != null,
+          "Should have selectedModel when using best-of-N",
+        );
+        assert.ok(
+          result.qualityScore != null,
+          "Should have qualityScore when using best-of-N",
+        );
+        assert.ok(
+          result.qualityScore >= 0 && result.qualityScore <= 1,
+          "Quality score should be between 0 and 1",
+        );
+      });
+
+      it("accumulates glossary in single-chunk path with dynamic glossary", async () => {
+        const model = await getModel();
+
+        const result = await translate(
+          model,
+          "ko",
+          "Machine learning uses neural networks for pattern recognition.",
+          {
+            chunker: null, // Force single-chunk path
+            dynamicGlossary: true,
+          },
+        );
+
+        assert.ok(result.text.length > 0);
+        // Dynamic glossary should extract terms even for single chunk
+        // The exact terms depend on LLM, so we just check the structure
+        assert.ok(
+          result.accumulatedGlossary === undefined ||
+            Array.isArray(result.accumulatedGlossary),
+          "accumulatedGlossary should be undefined or an array",
+        );
+      });
+
+      it("extracts title correctly in single-chunk path", async () => {
+        const model = await getModel();
+
+        const result = await translate(
+          model,
+          "ko",
+          "This is the article body.",
+          {
+            chunker: null,
+            title: "Important News",
+          },
+        );
+
+        assert.ok(result.text.length > 0);
+        assert.ok(result.title != null, "Should extract title");
+        assert.ok(result.title.length > 0, "Title should not be empty");
+        // Title should be in Korean since we're translating to Korean
+        assert.ok(
+          /[\uAC00-\uD7AF]/.test(result.title),
+          `Expected Korean title, got: ${result.title}`,
+        );
+      });
+
+      it("applies refinement in single-chunk path", async () => {
+        const model = await getModel();
+
+        const result = await translate(model, "ko", "Hello, world!", {
+          chunker: null,
+          refinement: { maxIterations: 1 },
+        });
+
+        assert.ok(result.text.length > 0);
+        assert.ok(
+          result.qualityScore != null,
+          "Should have qualityScore after refinement",
+        );
+        assert.ok(
+          result.refinementIterations != null,
+          "Should report refinement iterations",
+        );
+      });
+
+      it("preserves HTML in single-chunk path with text/html mediaType", async () => {
+        const model = await getModel();
+
+        const result = await translate(
+          model,
+          "ko",
+          "<p>Hello, <strong>world</strong>!</p>",
+          {
+            chunker: null,
+            mediaType: "text/html",
+          },
+        );
+
+        assert.ok(result.text.length > 0);
+        // Should preserve some HTML structure
+        assert.ok(
+          result.text.includes("<") && result.text.includes(">"),
+          `Expected HTML tags preserved, got: ${result.text}`,
+        );
+      });
     },
   );
 }

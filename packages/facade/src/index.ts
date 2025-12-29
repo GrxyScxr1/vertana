@@ -1,4 +1,6 @@
 import {
+  buildSystemPrompt,
+  buildUserPrompt,
   type Candidate,
   type Chunk,
   type ContextResult,
@@ -6,11 +8,15 @@ import {
   countTokens,
   createHtmlChunker,
   createMarkdownChunker,
+  extractTerms,
+  extractTitle,
   type Glossary,
   type GlossaryEntry,
   type PassiveContextSource,
   refineChunks,
   selectBest,
+  translateChunks,
+  type TranslateChunksComplete,
 } from "@vertana/core";
 import {
   generateText,
@@ -18,14 +24,6 @@ import {
   stepCountIs,
   type ToolSet,
 } from "ai";
-import {
-  buildSystemPrompt,
-  buildUserPrompt,
-  buildUserPromptWithContext,
-  extractTitle,
-  type TranslatedChunk,
-} from "./prompt.ts";
-import { extractTerms } from "./terms.ts";
 import { convertToTools } from "./tools.ts";
 import type {
   BestOfNOptions,
@@ -37,10 +35,6 @@ import type {
 
 /**
  * Gathers context from all required context sources.
- *
- * @param sources The context sources to gather from.
- * @param signal Optional abort signal.
- * @returns The gathered context results.
  */
 async function gatherRequiredContext(
   sources: readonly ContextSource[],
@@ -62,9 +56,6 @@ async function gatherRequiredContext(
 
 /**
  * Combines gathered context results into a single string.
- *
- * @param results The context results to combine.
- * @returns The combined context string.
  */
 function combineContextResults(results: readonly ContextResult[]): string {
   return results
@@ -90,58 +81,16 @@ export type {
   TranslationTone,
 } from "./types.ts";
 
-export { extractTerms } from "./terms.ts";
+export { extractTerms } from "@vertana/core";
 
 /**
  * Gets the default chunker based on media type.
- *
- * @param mediaType The media type of the content.
- * @returns The appropriate chunker for the media type.
  */
 function getDefaultChunker(mediaType?: MediaType) {
   if (mediaType === "text/html") {
     return createHtmlChunker();
   }
-  // Use markdown chunker for markdown and plain text
   return createMarkdownChunker();
-}
-
-/**
- * Translates a single chunk of text.
- *
- * @param model The language model to use.
- * @param systemPrompt The system prompt.
- * @param text The text to translate.
- * @param previousChunks Previously translated chunks for context.
- * @param tools Optional tools for passive context sources.
- * @param hasPassiveSources Whether passive sources are present.
- * @param signal Optional abort signal.
- * @returns The translation result.
- */
-async function translateChunk(
-  model: LanguageModel,
-  systemPrompt: string,
-  text: string,
-  previousChunks: readonly TranslatedChunk[],
-  tools?: ToolSet,
-  hasPassiveSources?: boolean,
-  signal?: AbortSignal,
-): Promise<{ text: string; tokenUsed: number }> {
-  const userPrompt = previousChunks.length > 0
-    ? buildUserPromptWithContext(text, previousChunks)
-    : buildUserPrompt(text);
-  const result = await generateText({
-    model,
-    system: systemPrompt,
-    prompt: userPrompt,
-    tools,
-    stopWhen: hasPassiveSources ? stepCountIs(10) : undefined,
-    abortSignal: signal,
-  });
-  return {
-    text: result.text,
-    tokenUsed: result.usage?.totalTokens ?? 0,
-  };
 }
 
 /**
@@ -166,25 +115,21 @@ export async function translate(
 ): Promise<Translation> {
   const startTime = performance.now();
 
-  // Normalize models to array
+  // 1. Normalize options
   const models = Array.isArray(model) ? model : [model];
+  const primaryModel = models[0];
 
-  // Determine if best-of-N selection should be used
   const bestOfNOptions: BestOfNOptions | null =
     models.length > 1 && options?.bestOfN != null && options.bestOfN !== false
       ? options.bestOfN === true ? {} : options.bestOfN
       : null;
 
-  // Determine if dynamic glossary should be used
   const dynamicGlossaryOptions: DynamicGlossaryOptions | null =
     options?.dynamicGlossary != null && options.dynamicGlossary !== false
       ? options.dynamicGlossary === true ? {} : options.dynamicGlossary
       : null;
 
-  // When not using best-of-N, just use the first model
-  const primaryModel = models[0];
-
-  // Gather context from required sources
+  // 2. Gather context from required sources
   let gatheredContext = "";
   if (options?.contextSources != null && options.contextSources.length > 0) {
     options?.onProgress?.({ stage: "gatheringContext", progress: 0 });
@@ -196,53 +141,19 @@ export async function translate(
     options?.onProgress?.({ stage: "gatheringContext", progress: 1 });
   }
 
-  // Combine gathered context with user-provided context
   const combinedContext = [options?.context, gatheredContext]
     .filter((c) => c != null && c.trim().length > 0)
     .join("\n\n");
 
-  // Base options for system prompt (without glossary, which may be accumulated)
-  const baseSystemPromptOptions = {
-    sourceLanguage: options?.sourceLanguage,
-    tone: options?.tone,
-    domain: options?.domain,
-    mediaType: options?.mediaType,
-    context: combinedContext || undefined,
-  };
-
-  // Initial glossary from options
-  const initialGlossary: Glossary = options?.glossary ?? [];
-
-  // Accumulated glossary for dynamic term extraction
-  const accumulatedGlossary: GlossaryEntry[] = [];
-
-  /**
-   * Builds system prompt with the current glossary state.
-   */
-  function buildCurrentSystemPrompt(): string {
-    const currentGlossary: Glossary = accumulatedGlossary.length > 0
-      ? [...initialGlossary, ...accumulatedGlossary]
-      : initialGlossary;
-    return buildSystemPrompt(targetLanguage, {
-      ...baseSystemPromptOptions,
-      glossary: currentGlossary.length > 0 ? currentGlossary : undefined,
-    });
-  }
-
-  // Build the initial system prompt
-  const systemPrompt = buildCurrentSystemPrompt();
-
-  // Determine the chunker to use
+  // 3. Chunk text
   const chunker = options?.chunker === null
     ? null
     : options?.chunker ?? getDefaultChunker(options?.mediaType);
 
-  // Get max tokens from context window (default 4096 for chunking)
   const maxTokens = options?.contextWindow?.type === "explicit"
     ? options.contextWindow.maxTokens
     : 4096;
 
-  // Check if chunking is needed
   let chunks: readonly Chunk[] = [];
   if (chunker != null) {
     options?.onProgress?.({ stage: "chunking", progress: 0 });
@@ -254,12 +165,11 @@ export async function translate(
     options?.onProgress?.({ stage: "chunking", progress: 1 });
   }
 
-  // Extract passive sources for tool calling
+  // 4. Prepare tools for passive sources
   const passiveSources = (options?.contextSources ?? []).filter(
     (s): s is PassiveContextSource<unknown> => s.mode === "passive",
   );
 
-  // Convert passive sources to AI SDK tools if any exist
   let tools: ToolSet | undefined;
   if (passiveSources.length > 0) {
     options?.onProgress?.({ stage: "prompting", progress: 0 });
@@ -267,310 +177,107 @@ export async function translate(
     options?.onProgress?.({ stage: "prompting", progress: 1 });
   }
 
-  // If no chunking or single chunk, translate directly
+  // Initial glossary from options
+  const initialGlossary: Glossary = options?.glossary ?? [];
+
+  // 5. Single-chunk path (handles title specially)
   if (chunks.length <= 1) {
-    const userPrompt = buildUserPrompt(text, options?.title);
-    options?.onProgress?.({ stage: "translating", progress: 0 });
-
-    // Determine which models to use for translation
-    const modelsToUse = bestOfNOptions != null ? models : [primaryModel];
-
-    // Generate translations from all models in parallel
-    const translationResults = await Promise.all(
-      modelsToUse.map(async (modelToUse) => {
-        const result = await generateText({
-          model: modelToUse,
-          system: systemPrompt,
-          prompt: userPrompt,
-          tools,
-          stopWhen: passiveSources.length > 0 ? stepCountIs(10) : undefined,
-          abortSignal: options?.signal,
-        });
-        return {
-          text: result.text,
-          metadata: modelToUse,
-          tokensUsed: result.usage?.totalTokens ?? 0,
-        };
-      }),
+    return translateSingleChunk(
+      models,
+      targetLanguage,
+      text,
+      {
+        ...options,
+        context: combinedContext || undefined,
+        glossary: initialGlossary,
+        tools,
+        passiveSources,
+        bestOfNOptions,
+        dynamicGlossaryOptions,
+        startTime,
+      },
     );
-
-    const candidates: Array<Candidate<LanguageModel>> = translationResults.map(
-      (r) => ({ text: r.text, metadata: r.metadata }),
-    );
-    const totalTokensUsed = translationResults.reduce(
-      (sum, r) => sum + r.tokensUsed,
-      0,
-    );
-
-    options?.onProgress?.({ stage: "translating", progress: 1 });
-
-    // Select the best translation if best-of-N is enabled
-    let translatedText: string;
-    let winningModel: LanguageModel | undefined;
-    let qualityScore: number | undefined;
-
-    if (bestOfNOptions != null && candidates.length > 1) {
-      options?.onProgress?.({
-        stage: "selecting",
-        progress: 0,
-        totalCandidates: candidates.length,
-      });
-
-      const evaluatorModel = bestOfNOptions.evaluatorModel ?? primaryModel;
-
-      const selectionResult = await selectBest(
-        evaluatorModel,
-        text,
-        candidates,
-        {
-          targetLanguage,
-          sourceLanguage: options?.sourceLanguage,
-          glossary: options?.glossary,
-          signal: options?.signal,
-        },
-      );
-
-      translatedText = selectionResult.best.text;
-      winningModel = selectionResult.best.metadata;
-      qualityScore = selectionResult.best.score;
-
-      options?.onProgress?.({
-        stage: "selecting",
-        progress: 1,
-        totalCandidates: candidates.length,
-      });
-    } else {
-      translatedText = candidates[0].text;
-    }
-
-    let refinementIterations: number | undefined;
-
-    // Apply refinement if enabled
-    if (options?.refinement != null) {
-      options?.onProgress?.({ stage: "refining", progress: 0 });
-
-      const refineResult = await refineChunks(
-        winningModel ?? primaryModel,
-        [text],
-        [translatedText],
-        {
-          targetLanguage,
-          sourceLanguage: options?.sourceLanguage,
-          targetScore: options.refinement.qualityThreshold ?? 0.85,
-          maxIterations: options.refinement.maxIterations ?? 3,
-          glossary: options?.glossary,
-          evaluateBoundaries: false,
-          signal: options?.signal,
-        },
-      );
-
-      translatedText = refineResult.chunks[0];
-      qualityScore = refineResult.scores[0];
-      refinementIterations = refineResult.totalIterations;
-
-      options?.onProgress?.({ stage: "refining", progress: 1 });
-    }
-
-    // Extract terms for dynamic glossary (single chunk case)
-    if (dynamicGlossaryOptions != null) {
-      const extractorModel = dynamicGlossaryOptions.extractorModel ??
-        primaryModel;
-      const maxTermsPerChunk = dynamicGlossaryOptions.maxTermsPerChunk ?? 10;
-      const extractedTerms = await extractTerms(
-        extractorModel,
-        text,
-        translatedText,
-        {
-          maxTerms: maxTermsPerChunk,
-          signal: options?.signal,
-        },
-      );
-
-      for (const term of extractedTerms) {
-        const isDuplicate = accumulatedGlossary.some(
-          (existing) =>
-            existing.original.toLowerCase() === term.original.toLowerCase(),
-        ) ||
-          initialGlossary.some(
-            (existing) =>
-              existing.original.toLowerCase() === term.original.toLowerCase(),
-          );
-        if (!isDuplicate) {
-          accumulatedGlossary.push(term);
-        }
-      }
-    }
-
-    const processingTime = performance.now() - startTime;
-
-    return {
-      text: translatedText,
-      title: options?.title != null ? extractTitle(translatedText) : undefined,
-      tokenUsed: totalTokensUsed,
-      processingTime,
-      qualityScore,
-      refinementIterations,
-      selectedModel: winningModel,
-      accumulatedGlossary: accumulatedGlossary.length > 0
-        ? accumulatedGlossary
-        : undefined,
-    };
   }
 
-  // Determine which models to use for translation
+  // 6. Multi-chunk path using translateChunks stream
+  const sourceChunks = chunks.map((c) => c.content);
   const modelsToUse = bestOfNOptions != null ? models : [primaryModel];
-  const evaluatorModel = bestOfNOptions?.evaluatorModel ?? primaryModel;
-  const useBestOfN = bestOfNOptions != null && modelsToUse.length > 1;
-
-  // Process chunks sequentially, with parallel model translation per chunk
-  let finalChunks: string[] = [];
-  let totalTokensUsed = 0;
-  let totalQualityScore = 0;
-  const modelWinCounts = new Map<LanguageModel, number>();
-  const previousChunks: TranslatedChunk[] = [];
-
-  for (let i = 0; i < chunks.length; i++) {
-    options?.signal?.throwIfAborted();
-
-    options?.onProgress?.({
-      stage: "translating",
-      progress: i / chunks.length,
-      chunkIndex: i,
-      totalChunks: chunks.length,
-    });
-
-    // Build system prompt with current glossary state (may include accumulated terms)
-    const currentSystemPrompt = dynamicGlossaryOptions != null
-      ? buildCurrentSystemPrompt()
-      : systemPrompt;
-
-    // Current glossary for evaluation (initial + accumulated)
-    const currentGlossary: Glossary = accumulatedGlossary.length > 0
-      ? [...initialGlossary, ...accumulatedGlossary]
-      : initialGlossary;
-
-    // Translate current chunk with all models in parallel
-    const chunkResults = await Promise.all(
-      modelsToUse.map(async (model) => {
-        const result = await translateChunk(
-          model,
-          currentSystemPrompt,
-          chunks[i].content,
-          previousChunks,
-          tools,
-          passiveSources.length > 0,
-          options?.signal,
-        );
-        return { model, ...result };
-      }),
-    );
-
-    // Sum up tokens used
-    for (const result of chunkResults) {
-      totalTokensUsed += result.tokenUsed;
-    }
-
-    // Select best translation for this chunk if best-of-N is enabled
-    let selectedTranslation: string;
-    if (useBestOfN) {
-      const candidates: Array<Candidate<LanguageModel>> = chunkResults.map(
-        (r) => ({ text: r.text, metadata: r.model }),
-      );
-
-      const selectionResult = await selectBest(
-        evaluatorModel,
-        chunks[i].content,
-        candidates,
-        {
-          targetLanguage,
-          sourceLanguage: options?.sourceLanguage,
-          glossary: currentGlossary.length > 0 ? currentGlossary : undefined,
-          signal: options?.signal,
-        },
-      );
-
-      selectedTranslation = selectionResult.best.text;
-      finalChunks.push(selectedTranslation);
-      totalQualityScore += selectionResult.best.score;
-
-      // Track winning model for this chunk
-      const chunkWinner = selectionResult.best.metadata;
-      if (chunkWinner != null) {
-        modelWinCounts.set(
-          chunkWinner,
-          (modelWinCounts.get(chunkWinner) ?? 0) + 1,
-        );
-      }
-    } else {
-      selectedTranslation = chunkResults[0].text;
-      finalChunks.push(selectedTranslation);
-    }
-
-    // Extract and accumulate terms if dynamic glossary is enabled
-    if (dynamicGlossaryOptions != null) {
-      const extractorModel = dynamicGlossaryOptions.extractorModel ??
-        primaryModel;
-      const maxTermsPerChunk = dynamicGlossaryOptions.maxTermsPerChunk ?? 10;
-
-      const extractedTerms = await extractTerms(
-        extractorModel,
-        chunks[i].content,
-        selectedTranslation,
-        {
-          maxTerms: maxTermsPerChunk,
-          signal: options?.signal,
-        },
-      );
-
-      // Add extracted terms to accumulated glossary (avoiding duplicates)
-      for (const term of extractedTerms) {
-        const isDuplicate = accumulatedGlossary.some(
-          (existing) =>
-            existing.original.toLowerCase() === term.original.toLowerCase(),
-        ) ||
-          initialGlossary.some(
-            (existing) =>
-              existing.original.toLowerCase() === term.original.toLowerCase(),
-          );
-        if (!isDuplicate) {
-          accumulatedGlossary.push(term);
-        }
-      }
-    }
-
-    // Add to previous chunks for context in next iteration
-    previousChunks.push({
-      source: chunks[i].content,
-      translation: selectedTranslation,
-    });
-  }
 
   options?.onProgress?.({
     stage: "translating",
-    progress: 1,
-    chunkIndex: chunks.length,
+    progress: 0,
+    chunkIndex: 0,
     totalChunks: chunks.length,
   });
 
-  // Determine the most frequently winning model
-  let winningModel: LanguageModel | undefined;
-  let qualityScore: number | undefined;
+  let result: TranslateChunksComplete | undefined;
+  let totalQualityScore = 0;
+  let qualityScoreCount = 0;
+  const modelWinCounts = new Map<LanguageModel, number>();
 
-  if (useBestOfN) {
+  for await (
+    const event of translateChunks(sourceChunks, {
+      targetLanguage,
+      sourceLanguage: options?.sourceLanguage,
+      tone: options?.tone,
+      domain: options?.domain,
+      mediaType: options?.mediaType,
+      context: combinedContext || undefined,
+      glossary: initialGlossary,
+      models: modelsToUse,
+      evaluatorModel: bestOfNOptions?.evaluatorModel,
+      dynamicGlossary: dynamicGlossaryOptions,
+      tools,
+      signal: options?.signal,
+    })
+  ) {
+    if (event.type === "chunk") {
+      options?.onProgress?.({
+        stage: "translating",
+        progress: (event.index + 1) / chunks.length,
+        chunkIndex: event.index,
+        totalChunks: chunks.length,
+      });
+
+      if (event.qualityScore != null) {
+        totalQualityScore += event.qualityScore;
+        qualityScoreCount++;
+      }
+      if (event.selectedModel != null) {
+        modelWinCounts.set(
+          event.selectedModel,
+          (modelWinCounts.get(event.selectedModel) ?? 0) + 1,
+        );
+      }
+    } else {
+      result = event;
+    }
+  }
+
+  if (result == null) {
+    throw new Error("Translation did not complete");
+  }
+
+  // Determine winning model
+  let winningModel: LanguageModel | undefined;
+  if (modelWinCounts.size > 0) {
     let maxWins = 0;
-    for (const [model, wins] of modelWinCounts) {
+    for (const [m, wins] of modelWinCounts) {
       if (wins > maxWins) {
         maxWins = wins;
-        winningModel = model;
+        winningModel = m;
       }
     }
-    qualityScore = totalQualityScore / chunks.length;
   }
+
+  let finalChunks = [...result.translations];
+  let qualityScore = qualityScoreCount > 0
+    ? totalQualityScore / qualityScoreCount
+    : undefined;
   let refinementIterations: number | undefined;
 
-  // Apply refinement if enabled
+  // 7. Apply refinement if enabled
   if (options?.refinement != null) {
-    const originalChunks = chunks.map((c) => c.content);
     const maxIterations = options.refinement.maxIterations ?? 3;
 
     options?.onProgress?.({
@@ -580,14 +287,13 @@ export async function translate(
       totalChunks: chunks.length,
     });
 
-    // Use accumulated glossary for refinement if available
-    const refinementGlossary: Glossary = accumulatedGlossary.length > 0
-      ? [...initialGlossary, ...accumulatedGlossary]
+    const refinementGlossary: Glossary = result.accumulatedGlossary.length > 0
+      ? [...initialGlossary, ...result.accumulatedGlossary]
       : initialGlossary;
 
     const refineResult = await refineChunks(
       winningModel ?? primaryModel,
-      originalChunks,
+      sourceChunks,
       finalChunks,
       {
         targetLanguage,
@@ -603,7 +309,6 @@ export async function translate(
     );
 
     finalChunks = [...refineResult.chunks];
-    // Average score across all chunks
     qualityScore = refineResult.scores.reduce((a, b) => a + b, 0) /
       refineResult.scores.length;
     refinementIterations = refineResult.totalIterations;
@@ -617,14 +322,205 @@ export async function translate(
     });
   }
 
+  // 8. Return result
   const processingTime = performance.now() - startTime;
-
-  // Combine translated chunks
   const combinedText = finalChunks.join("\n\n");
 
   return {
     text: combinedText,
     title: options?.title != null ? extractTitle(combinedText) : undefined,
+    tokenUsed: result.totalTokensUsed,
+    processingTime,
+    qualityScore,
+    refinementIterations,
+    selectedModel: winningModel,
+    accumulatedGlossary: result.accumulatedGlossary.length > 0
+      ? result.accumulatedGlossary
+      : undefined,
+  };
+}
+
+/**
+ * Internal options for single-chunk translation.
+ */
+interface SingleChunkOptions extends TranslateOptions {
+  readonly tools?: ToolSet;
+  readonly passiveSources: readonly PassiveContextSource<unknown>[];
+  readonly bestOfNOptions: BestOfNOptions | null;
+  readonly dynamicGlossaryOptions: DynamicGlossaryOptions | null;
+  readonly startTime: number;
+}
+
+/**
+ * Handles single-chunk translation with title support.
+ */
+async function translateSingleChunk(
+  models: readonly LanguageModel[],
+  targetLanguage: Intl.Locale | string,
+  text: string,
+  options: SingleChunkOptions,
+): Promise<Translation> {
+  const {
+    tools,
+    passiveSources,
+    bestOfNOptions,
+    dynamicGlossaryOptions,
+    startTime,
+    ...translateOptions
+  } = options;
+
+  const primaryModel = models[0];
+  const initialGlossary: Glossary = translateOptions.glossary ?? [];
+
+  const systemPrompt = buildSystemPrompt(targetLanguage, {
+    sourceLanguage: translateOptions.sourceLanguage,
+    tone: translateOptions.tone,
+    domain: translateOptions.domain,
+    mediaType: translateOptions.mediaType,
+    context: translateOptions.context,
+    glossary: initialGlossary.length > 0 ? initialGlossary : undefined,
+  });
+
+  const userPrompt = buildUserPrompt(text, translateOptions.title);
+  translateOptions.onProgress?.({ stage: "translating", progress: 0 });
+
+  // Determine which models to use
+  const modelsToUse = bestOfNOptions != null ? models : [primaryModel];
+
+  // Generate translations from all models in parallel
+  const translationResults = await Promise.all(
+    modelsToUse.map(async (modelToUse) => {
+      const result = await generateText({
+        model: modelToUse,
+        system: systemPrompt,
+        prompt: userPrompt,
+        tools,
+        stopWhen: passiveSources.length > 0 ? stepCountIs(10) : undefined,
+        abortSignal: translateOptions.signal,
+      });
+      return {
+        text: result.text,
+        metadata: modelToUse,
+        tokensUsed: result.usage?.totalTokens ?? 0,
+      };
+    }),
+  );
+
+  const candidates: Array<Candidate<LanguageModel>> = translationResults.map(
+    (r) => ({ text: r.text, metadata: r.metadata }),
+  );
+  const totalTokensUsed = translationResults.reduce(
+    (sum, r) => sum + r.tokensUsed,
+    0,
+  );
+
+  translateOptions.onProgress?.({ stage: "translating", progress: 1 });
+
+  // Select the best translation if best-of-N is enabled
+  let translatedText: string;
+  let winningModel: LanguageModel | undefined;
+  let qualityScore: number | undefined;
+
+  if (bestOfNOptions != null && candidates.length > 1) {
+    translateOptions.onProgress?.({
+      stage: "selecting",
+      progress: 0,
+      totalCandidates: candidates.length,
+    });
+
+    const evaluatorModel = bestOfNOptions.evaluatorModel ?? primaryModel;
+
+    const selectionResult = await selectBest(
+      evaluatorModel,
+      text,
+      candidates,
+      {
+        targetLanguage,
+        sourceLanguage: translateOptions.sourceLanguage,
+        glossary: initialGlossary.length > 0 ? initialGlossary : undefined,
+        signal: translateOptions.signal,
+      },
+    );
+
+    translatedText = selectionResult.best.text;
+    winningModel = selectionResult.best.metadata;
+    qualityScore = selectionResult.best.score;
+
+    translateOptions.onProgress?.({
+      stage: "selecting",
+      progress: 1,
+      totalCandidates: candidates.length,
+    });
+  } else {
+    translatedText = candidates[0].text;
+  }
+
+  let refinementIterations: number | undefined;
+
+  // Apply refinement if enabled
+  if (translateOptions.refinement != null) {
+    translateOptions.onProgress?.({ stage: "refining", progress: 0 });
+
+    const refineResult = await refineChunks(
+      winningModel ?? primaryModel,
+      [text],
+      [translatedText],
+      {
+        targetLanguage,
+        sourceLanguage: translateOptions.sourceLanguage,
+        targetScore: translateOptions.refinement.qualityThreshold ?? 0.85,
+        maxIterations: translateOptions.refinement.maxIterations ?? 3,
+        glossary: initialGlossary.length > 0 ? initialGlossary : undefined,
+        evaluateBoundaries: false,
+        signal: translateOptions.signal,
+      },
+    );
+
+    translatedText = refineResult.chunks[0];
+    qualityScore = refineResult.scores[0];
+    refinementIterations = refineResult.totalIterations;
+
+    translateOptions.onProgress?.({ stage: "refining", progress: 1 });
+  }
+
+  // Extract terms for dynamic glossary
+  const accumulatedGlossary: GlossaryEntry[] = [];
+  if (dynamicGlossaryOptions != null) {
+    const extractorModel = dynamicGlossaryOptions.extractorModel ??
+      primaryModel;
+    const maxTermsPerChunk = dynamicGlossaryOptions.maxTermsPerChunk ?? 10;
+    const extractedTerms = await extractTerms(
+      extractorModel,
+      text,
+      translatedText,
+      {
+        maxTerms: maxTermsPerChunk,
+        signal: translateOptions.signal,
+      },
+    );
+
+    for (const term of extractedTerms) {
+      const isDuplicate = accumulatedGlossary.some(
+        (existing) =>
+          existing.original.toLowerCase() === term.original.toLowerCase(),
+      ) ||
+        initialGlossary.some(
+          (existing) =>
+            existing.original.toLowerCase() === term.original.toLowerCase(),
+        );
+      if (!isDuplicate) {
+        accumulatedGlossary.push(term);
+      }
+    }
+  }
+
+  const processingTime = performance.now() - startTime;
+
+  return {
+    text: translatedText,
+    title: translateOptions.title != null
+      ? extractTitle(translatedText)
+      : undefined,
     tokenUsed: totalTokensUsed,
     processingTime,
     qualityScore,
