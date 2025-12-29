@@ -14,6 +14,7 @@ export default defineConfig({
     "src/select.ts",
     "src/terms.ts",
     "src/tokens.ts",
+    "src/tools.ts",
     "src/translate.ts",
     "src/window.ts",
   ],

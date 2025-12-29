@@ -146,6 +146,14 @@
       "require": "./dist/terms.cjs",
       "import": "./dist/terms.js"
     },
+    "./tools": {
+      "types": {
+        "require": "./dist/tools.d.cts",
+        "import": "./dist/tools.d.ts"
+      },
+      "require": "./dist/tools.cjs",
+      "import": "./dist/tools.js"
+    },
     "./translate": {
       "types": {
         "require": "./dist/translate.d.cts",
@@ -157,6 +165,7 @@
   },
   "sideEffects": false,
   "dependencies": {
+    "@standard-community/standard-json": "catalog:",
     "dom-serializer": "catalog:",
     "domhandler": "catalog:",
     "htmlparser2": "catalog:",
@@ -175,7 +184,8 @@
     "@types/node": "catalog:",
     "ai": "catalog:",
     "tsdown": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "valibot": "catalog:"
   },
   "scripts": {
     "build": "tsdown",

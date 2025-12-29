@@ -59,6 +59,9 @@ importers:
 
   packages/core:
     dependencies:
+      '@standard-community/standard-json':
+        specifier: 'catalog:'
+        version: 0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(@valibot/to-json-schema@1.5.0(valibot@1.2.0(typescript@5.9.3)))(quansync@1.0.0)(valibot@1.2.0(typescript@5.9.3))(zod@4.2.1)
       dom-serializer:
         specifier: 'catalog:'
         version: 2.0.0
@@ -99,12 +102,12 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
+      valibot:
+        specifier: 'catalog:'
+        version: 1.2.0(typescript@5.9.3)
 
   packages/facade:
     dependencies:
-      '@standard-community/standard-json':
-        specifier: 'catalog:'
-        version: 0.3.5(@standard-schema/spec@1.1.0)(@types/json-schema@7.0.15)(@valibot/to-json-schema@1.5.0(valibot@1.2.0(typescript@5.9.3)))(quansync@1.0.0)(valibot@1.2.0(typescript@5.9.3))(zod@4.2.1)
       '@vertana/core':
         specifier: 'workspace:'
         version: link:../core

@@ -62,6 +62,7 @@ export {
   type TranslationTone,
 } from "./prompt.ts";
 export { extractTerms, type ExtractTermsOptions } from "./terms.ts";
+export { createToolSet } from "./tools.ts";
 export {
   type DynamicGlossaryOptions,
   type RefinementOptions,

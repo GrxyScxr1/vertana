@@ -16,6 +16,7 @@
     "./window": "./src/window.ts",
     "./prompt": "./src/prompt.ts",
     "./terms": "./src/terms.ts",
+    "./tools": "./src/tools.ts",
     "./translate": "./src/translate.ts"
   },
   "exclude": [

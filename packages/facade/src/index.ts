@@ -4,6 +4,7 @@ import {
   countTokens,
   createHtmlChunker,
   createMarkdownChunker,
+  createToolSet,
   extractTitle,
   gatherRequiredContext,
   type Glossary,
@@ -12,7 +13,6 @@ import {
   type TranslateChunksComplete,
 } from "@vertana/core";
 import type { LanguageModel, ToolSet } from "ai";
-import { convertToTools } from "./tools.ts";
 import type {
   BestOfNOptions,
   DynamicGlossaryOptions,
@@ -131,7 +131,7 @@ export async function translate(
   let tools: ToolSet | undefined;
   if (passiveSources.length > 0) {
     options?.onProgress?.({ stage: "prompting", progress: 0 });
-    tools = await convertToTools(passiveSources, options?.signal);
+    tools = await createToolSet(passiveSources, options?.signal);
     options?.onProgress?.({ stage: "prompting", progress: 1 });
   }
 
