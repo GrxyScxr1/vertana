@@ -228,35 +228,32 @@ export async function translate(
     // Determine which models to use for translation
     const modelsToUse = bestOfNOptions != null ? models : [primaryModel];
 
-    // Generate translations from all models
-    const candidates: Array<Candidate<LanguageModel>> = [];
-    let totalTokensUsed = 0;
-
-    for (let i = 0; i < modelsToUse.length; i++) {
-      options?.signal?.throwIfAborted();
-
-      if (modelsToUse.length > 1) {
-        options?.onProgress?.({
-          stage: "translating",
-          progress: i / modelsToUse.length,
+    // Generate translations from all models in parallel
+    const translationResults = await Promise.all(
+      modelsToUse.map(async (modelToUse) => {
+        const result = await generateText({
+          model: modelToUse,
+          system: systemPrompt,
+          prompt: userPrompt,
+          tools,
+          stopWhen: passiveSources.length > 0 ? stepCountIs(10) : undefined,
+          abortSignal: options?.signal,
         });
-      }
+        return {
+          text: result.text,
+          metadata: modelToUse,
+          tokensUsed: result.usage?.totalTokens ?? 0,
+        };
+      }),
+    );
 
-      const result = await generateText({
-        model: modelsToUse[i],
-        system: systemPrompt,
-        prompt: userPrompt,
-        tools,
-        stopWhen: passiveSources.length > 0 ? stepCountIs(10) : undefined,
-        abortSignal: options?.signal,
-      });
-
-      candidates.push({
-        text: result.text,
-        metadata: modelsToUse[i],
-      });
-      totalTokensUsed += result.usage?.totalTokens ?? 0;
-    }
+    const candidates: Array<Candidate<LanguageModel>> = translationResults.map(
+      (r) => ({ text: r.text, metadata: r.metadata }),
+    );
+    const totalTokensUsed = translationResults.reduce(
+      (sum, r) => sum + r.tokensUsed,
+      0,
+    );
 
     options?.onProgress?.({ stage: "translating", progress: 1 });
 
@@ -342,53 +339,77 @@ export async function translate(
 
   // Determine which models to use for translation
   const modelsToUse = bestOfNOptions != null ? models : [primaryModel];
+  const evaluatorModel = bestOfNOptions?.evaluatorModel ?? primaryModel;
+  const useBestOfN = bestOfNOptions != null && modelsToUse.length > 1;
 
-  // Generate translations from all models (each translating all chunks)
-  const allCandidates: Array<{
-    model: LanguageModel;
-    chunks: string[];
-    combinedText: string;
-    tokensUsed: number;
-  }> = [];
+  // Process chunks sequentially, with parallel model translation per chunk
+  let finalChunks: string[] = [];
+  let totalTokensUsed = 0;
+  let totalQualityScore = 0;
+  const modelWinCounts = new Map<LanguageModel, number>();
 
-  for (let modelIndex = 0; modelIndex < modelsToUse.length; modelIndex++) {
-    const currentModel = modelsToUse[modelIndex];
-    const translatedChunks: string[] = [];
-    let modelTokensUsed = 0;
+  for (let i = 0; i < chunks.length; i++) {
+    options?.signal?.throwIfAborted();
 
-    for (let i = 0; i < chunks.length; i++) {
-      options?.signal?.throwIfAborted();
+    options?.onProgress?.({
+      stage: "translating",
+      progress: i / chunks.length,
+      chunkIndex: i,
+      totalChunks: chunks.length,
+    });
 
-      // Calculate progress across all models and chunks
-      const totalSteps = modelsToUse.length * chunks.length;
-      const currentStep = modelIndex * chunks.length + i;
+    // Translate current chunk with all models in parallel
+    const chunkResults = await Promise.all(
+      modelsToUse.map(async (model) => {
+        const result = await translateChunk(
+          model,
+          systemPrompt,
+          chunks[i].content,
+          tools,
+          passiveSources.length > 0,
+          options?.signal,
+        );
+        return { model, ...result };
+      }),
+    );
 
-      options?.onProgress?.({
-        stage: "translating",
-        progress: currentStep / totalSteps,
-        chunkIndex: i,
-        totalChunks: chunks.length,
-      });
-
-      const chunkResult = await translateChunk(
-        currentModel,
-        systemPrompt,
-        chunks[i].content,
-        tools,
-        passiveSources.length > 0,
-        options?.signal,
-      );
-
-      translatedChunks.push(chunkResult.text);
-      modelTokensUsed += chunkResult.tokenUsed;
+    // Sum up tokens used
+    for (const result of chunkResults) {
+      totalTokensUsed += result.tokenUsed;
     }
 
-    allCandidates.push({
-      model: currentModel,
-      chunks: translatedChunks,
-      combinedText: translatedChunks.join("\n\n"),
-      tokensUsed: modelTokensUsed,
-    });
+    // Select best translation for this chunk if best-of-N is enabled
+    if (useBestOfN) {
+      const candidates: Array<Candidate<LanguageModel>> = chunkResults.map(
+        (r) => ({ text: r.text, metadata: r.model }),
+      );
+
+      const selectionResult = await selectBest(
+        evaluatorModel,
+        chunks[i].content,
+        candidates,
+        {
+          targetLanguage,
+          sourceLanguage: options?.sourceLanguage,
+          glossary: options?.glossary,
+          signal: options?.signal,
+        },
+      );
+
+      finalChunks.push(selectionResult.best.text);
+      totalQualityScore += selectionResult.best.score;
+
+      // Track winning model for this chunk
+      const chunkWinner = selectionResult.best.metadata;
+      if (chunkWinner != null) {
+        modelWinCounts.set(
+          chunkWinner,
+          (modelWinCounts.get(chunkWinner) ?? 0) + 1,
+        );
+      }
+    } else {
+      finalChunks.push(chunkResults[0].text);
+    }
   }
 
   options?.onProgress?.({
@@ -398,60 +419,20 @@ export async function translate(
     totalChunks: chunks.length,
   });
 
-  // Calculate total tokens used across all models
-  const totalTokensUsed = allCandidates.reduce(
-    (sum, c) => sum + c.tokensUsed,
-    0,
-  );
-
-  // Select the best translation if best-of-N is enabled
-  let winningCandidate = allCandidates[0];
+  // Determine the most frequently winning model
   let winningModel: LanguageModel | undefined;
   let qualityScore: number | undefined;
 
-  if (bestOfNOptions != null && allCandidates.length > 1) {
-    options?.onProgress?.({
-      stage: "selecting",
-      progress: 0,
-      totalCandidates: allCandidates.length,
-    });
-
-    const evaluatorModel = bestOfNOptions.evaluatorModel ?? primaryModel;
-    const candidates: Array<Candidate<LanguageModel>> = allCandidates.map(
-      (c) => ({
-        text: c.combinedText,
-        metadata: c.model,
-      }),
-    );
-
-    const selectionResult = await selectBest(
-      evaluatorModel,
-      text,
-      candidates,
-      {
-        targetLanguage,
-        sourceLanguage: options?.sourceLanguage,
-        glossary: options?.glossary,
-        signal: options?.signal,
-      },
-    );
-
-    // Find the winning candidate's chunk data
-    const winningIdx = allCandidates.findIndex(
-      (c) => c.model === selectionResult.best.metadata,
-    );
-    winningCandidate = allCandidates[winningIdx];
-    winningModel = selectionResult.best.metadata;
-    qualityScore = selectionResult.best.score;
-
-    options?.onProgress?.({
-      stage: "selecting",
-      progress: 1,
-      totalCandidates: allCandidates.length,
-    });
+  if (useBestOfN) {
+    let maxWins = 0;
+    for (const [model, wins] of modelWinCounts) {
+      if (wins > maxWins) {
+        maxWins = wins;
+        winningModel = model;
+      }
+    }
+    qualityScore = totalQualityScore / chunks.length;
   }
-
-  let finalChunks = winningCandidate.chunks;
   let refinementIterations: number | undefined;
 
   // Apply refinement if enabled
@@ -469,7 +450,7 @@ export async function translate(
     const refineResult = await refineChunks(
       winningModel ?? primaryModel,
       originalChunks,
-      winningCandidate.chunks,
+      finalChunks,
       {
         targetLanguage,
         sourceLanguage: options?.sourceLanguage,

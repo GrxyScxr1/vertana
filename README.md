@@ -29,7 +29,7 @@ Features
      -  Passive context sources: LLM-invoked tools using StandardSchema
  -  Translation quality evaluation (accuracy, fluency, terminology, style)
  -  Iterative refinement with chunk-level and boundary evaluation
- -  Best-of-N selection with multiple models
+ -  Best-of-N selection with multiple models (parallel per-chunk evaluation)
 
 ### Planned
  -  Adaptive context window detection
