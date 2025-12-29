@@ -183,6 +183,111 @@ if (hasTestModel() || !("Bun" in globalThis)) {
   );
 
   describe(
+    "best-of-N selection",
+    { skip: !hasTestModel() && "TEST_MODEL not set" },
+    () => {
+      it("selects best translation when multiple models provided", async () => {
+        const model = await getModel();
+
+        // Use the same model twice to test the selection mechanism
+        const result = await translate(
+          [model, model],
+          "ko",
+          "Hello, world!",
+          { bestOfN: true },
+        );
+
+        // Should have text and selected model
+        assert.ok(result.text.length > 0);
+        assert.ok(result.selectedModel != null);
+        assert.ok(result.qualityScore != null);
+        assert.ok(
+          result.qualityScore >= 0 && result.qualityScore <= 1,
+          `Expected score between 0 and 1, got ${result.qualityScore}`,
+        );
+      });
+
+      it("reports selecting progress stage", async () => {
+        const model = await getModel();
+        const stages: string[] = [];
+
+        await translate(
+          [model, model],
+          "ko",
+          "Good morning!",
+          {
+            bestOfN: true,
+            onProgress: (progress) => {
+              if (!stages.includes(progress.stage)) {
+                stages.push(progress.stage);
+              }
+            },
+          },
+        );
+
+        assert.ok(
+          stages.includes("selecting"),
+          `Should report selecting stage, got: ${stages.join(", ")}`,
+        );
+      });
+
+      it("uses custom evaluator model", async () => {
+        const model = await getModel();
+
+        const result = await translate(
+          [model, model],
+          "ko",
+          "Thank you for your help.",
+          {
+            bestOfN: {
+              evaluatorModel: model,
+            },
+          },
+        );
+
+        assert.ok(result.selectedModel != null);
+        assert.ok(result.qualityScore != null);
+      });
+
+      it("falls back to first model when bestOfN is disabled", async () => {
+        const model = await getModel();
+
+        const result = await translate(
+          [model, model],
+          "ko",
+          "Hello!",
+          // bestOfN is not set
+        );
+
+        // Should not have selectedModel when best-of-N is not enabled
+        assert.ok(result.selectedModel == null);
+        assert.ok(result.text.length > 0);
+      });
+
+      it("combines best-of-N selection with refinement", async () => {
+        const model = await getModel();
+
+        const result = await translate(
+          [model, model],
+          "ko",
+          "The weather is nice today.",
+          {
+            bestOfN: true,
+            refinement: {
+              qualityThreshold: 0.7,
+              maxIterations: 2,
+            },
+          },
+        );
+
+        assert.ok(result.selectedModel != null);
+        assert.ok(result.qualityScore != null);
+        assert.ok(result.refinementIterations != null);
+      });
+    },
+  );
+
+  describe(
     "chunking + refinement integration",
     { skip: !hasTestModel() && "TEST_MODEL not set" },
     () => {

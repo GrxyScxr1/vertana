@@ -9,6 +9,7 @@ export default defineConfig({
     "src/glossary.ts",
     "src/markdown.ts",
     "src/refine.ts",
+    "src/select.ts",
     "src/tokens.ts",
     "src/window.ts",
   ],

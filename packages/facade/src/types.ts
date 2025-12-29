@@ -4,6 +4,7 @@ import type {
   ContextWindow,
   Glossary,
 } from "@vertana/core";
+import type { LanguageModel } from "ai";
 
 /**
  * The media type of the input text.
@@ -101,6 +102,23 @@ export interface RefiningProgress extends BaseProgress {
 }
 
 /**
+ * Progress information for the best-of-N selection stage.
+ */
+export interface SelectingProgress extends BaseProgress {
+  readonly stage: "selecting";
+
+  /**
+   * The current candidate being evaluated (0-based).
+   */
+  readonly candidateIndex?: number;
+
+  /**
+   * The total number of candidates.
+   */
+  readonly totalCandidates?: number;
+}
+
+/**
  * Progress information for the translation process.
  */
 export type TranslationProgress =
@@ -108,7 +126,8 @@ export type TranslationProgress =
   | PromptingProgress
   | GatheringContextProgress
   | TranslatingProgress
-  | RefiningProgress;
+  | RefiningProgress
+  | SelectingProgress;
 
 /**
  * The result of a translation operation.
@@ -145,6 +164,12 @@ export interface Translation {
    * Only present when refinement is enabled.
    */
   readonly refinementIterations?: number;
+
+  /**
+   * The model that produced the best translation.
+   * Only present when best-of-N selection is used with multiple models.
+   */
+  readonly selectedModel?: LanguageModel;
 }
 
 /**
@@ -165,6 +190,17 @@ export interface RefinementOptions {
    * @default `0.9`
    */
   readonly qualityThreshold?: number;
+}
+
+/**
+ * Options for best-of-N selection when multiple models are provided.
+ */
+export interface BestOfNOptions {
+  /**
+   * The model to use for evaluating and selecting the best translation.
+   * If not specified, the first model in the array is used.
+   */
+  readonly evaluatorModel?: LanguageModel;
 }
 
 /**
@@ -263,4 +299,15 @@ export interface TranslateOptions {
    * Set to `null` to disable chunking entirely.
    */
   readonly chunker?: Chunker | null;
+
+  /**
+   * Best-of-N selection settings.  When multiple models are provided and this
+   * is enabled, each model generates a translation and the best one is selected
+   * based on evaluation scores.
+   *
+   * - `true`: Enable best-of-N selection with default settings.
+   * - `BestOfNOptions`: Enable with custom settings.
+   * - `undefined` or `false`: Disabled (only first model is used).
+   */
+  readonly bestOfN?: boolean | BestOfNOptions;
 }

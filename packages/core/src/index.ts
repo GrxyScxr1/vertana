@@ -40,3 +40,10 @@ export {
   type RefineChunksResult,
   type RefineIteration,
 } from "./refine.ts";
+export {
+  type Candidate,
+  type RankedCandidate,
+  selectBest,
+  type SelectBestOptions,
+  type SelectBestResult,
+} from "./select.ts";

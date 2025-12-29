@@ -98,6 +98,14 @@
       "require": "./dist/refine.cjs",
       "import": "./dist/refine.js"
     },
+    "./select": {
+      "types": {
+        "require": "./dist/select.d.cts",
+        "import": "./dist/select.d.ts"
+      },
+      "require": "./dist/select.cjs",
+      "import": "./dist/select.js"
+    },
     "./tokens": {
       "types": {
         "require": "./dist/tokens.d.cts",
@@ -125,6 +133,9 @@
     "ai": "catalog:"
   },
   "devDependencies": {
+    "@ai-sdk/anthropic": "catalog:",
+    "@ai-sdk/google": "catalog:",
+    "@ai-sdk/openai": "catalog:",
     "@standard-schema/spec": "catalog:",
     "@types/node": "catalog:",
     "ai": "catalog:",

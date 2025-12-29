@@ -53,6 +53,7 @@
   },
   "sideEffects": false,
   "dependencies": {
+    "@standard-community/standard-json": "catalog:",
     "@vertana/core": "workspace:"
   },
   "peerDependencies": {
@@ -63,9 +64,11 @@
     "@ai-sdk/google": "catalog:",
     "@ai-sdk/openai": "catalog:",
     "@types/node": "catalog:",
+    "@valibot/to-json-schema": "catalog:",
     "ai": "catalog:",
     "tsdown": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "valibot": "catalog:"
   },
   "scripts": {
     "build": "tsdown",

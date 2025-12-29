@@ -10,6 +10,7 @@
     "./glossary": "./src/glossary.ts",
     "./markdown": "./src/markdown.ts",
     "./refine": "./src/refine.ts",
+    "./select": "./src/select.ts",
     "./tokens": "./src/tokens.ts",
     "./window": "./src/window.ts"
   },
