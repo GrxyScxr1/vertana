@@ -10,6 +10,7 @@ export default defineConfig({
     "src/glossary.ts",
     "src/html.ts",
     "src/markdown.ts",
+    "src/plaintext.ts",
     "src/prompt.ts",
     "src/refine.ts",
     "src/select.ts",

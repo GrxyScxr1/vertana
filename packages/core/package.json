@@ -106,6 +106,14 @@
       "require": "./dist/markdown.cjs",
       "import": "./dist/markdown.js"
     },
+    "./plaintext": {
+      "types": {
+        "require": "./dist/plaintext.d.cts",
+        "import": "./dist/plaintext.d.ts"
+      },
+      "require": "./dist/plaintext.cjs",
+      "import": "./dist/plaintext.js"
+    },
     "./refine": {
       "types": {
         "require": "./dist/refine.d.cts",

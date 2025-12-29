@@ -94,7 +94,8 @@ export interface ChunkTextOptions {
    * when {@link chunker} is not provided.
    *
    * - `"text/html"`: Uses the HTML chunker.
-   * - `"text/markdown"` or `"text/plain"`: Uses the Markdown chunker.
+   * - `"text/markdown"`: Uses the Markdown chunker.
+   * - `"text/plain"`: Uses the plain text chunker.
    *
    * @default `"text/markdown"`
    */
@@ -139,6 +140,10 @@ export async function getDefaultChunker(
   if (mediaType === "text/html") {
     const { createHtmlChunker } = await import("./html.ts");
     return createHtmlChunker();
+  }
+  if (mediaType === "text/plain") {
+    const { createPlainTextChunker } = await import("./plaintext.ts");
+    return createPlainTextChunker();
   }
   const { createMarkdownChunker } = await import("./markdown.ts");
   return createMarkdownChunker();

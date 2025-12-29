@@ -11,6 +11,7 @@
     "./glossary": "./src/glossary.ts",
     "./html": "./src/html.ts",
     "./markdown": "./src/markdown.ts",
+    "./plaintext": "./src/plaintext.ts",
     "./refine": "./src/refine.ts",
     "./select": "./src/select.ts",
     "./tokens": "./src/tokens.ts",
