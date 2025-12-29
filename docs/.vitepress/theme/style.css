@@ -106,6 +106,38 @@
  * Component: Home
  * -------------------------------------------------------------------------- */
 
+:root {
+    --vp-home-hero-name-color: transparent;
+    --vp-home-hero-name-background: -webkit-linear-gradient(120deg,
+            var(--vp-c-maroon-1) 30%,
+            var(--vp-c-maroon-3));
+
+    --vp-home-hero-image-background-image: linear-gradient(-45deg,
+            #fca5a566 50%,
+            #ef444466 50%);
+    --vp-home-hero-image-filter: blur(24px);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --vp-home-hero-image-background-image: linear-gradient(-45deg,
+                #7f1d1d33 50%,
+                #b91c1c33 50%);
+    }
+}
+
+@media (min-width: 640px) {
+    :root {
+        --vp-home-hero-image-filter: blur(32px);
+    }
+}
+
+@media (min-width: 960px) {
+    :root {
+        --vp-home-hero-image-filter: blur(44px);
+    }
+}
+
 hr.footnotes-sep {
     margin-top: 48px;
 }

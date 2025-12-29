@@ -39,6 +39,7 @@ export default defineConfig({
   description: "LLM-powered agentic translation library for TypeScript",
   themeConfig: {
     // https://vitepress.dev/reference/default-theme-config
+    logo: "/vertana.svg",
     nav: [
       { text: "Home", link: "/" },
       ...TOP_NAV,
@@ -70,6 +71,43 @@ export default defineConfig({
       options: {},
     },
   },
+
+  head: [
+    [
+      "link",
+      {
+        rel: "icon",
+        type: "image/png",
+        sizes: "192x192",
+        href: "/favicon-192x192.png",
+      },
+    ],
+    [
+      "link",
+      {
+        rel: "icon",
+        type: "image/png",
+        sizes: "32x32",
+        href: "/favicon-32x32.png",
+      },
+    ],
+    [
+      "link",
+      {
+        rel: "icon",
+        type: "image/png",
+        sizes: "16x16",
+        href: "/favicon-16x16.png",
+      },
+    ],
+    [
+      "meta",
+      {
+        property: "og:image",
+        content: "/og.png",
+      },
+    ],
+  ],
 
   cleanUrls: true,
 

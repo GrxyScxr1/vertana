@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 162 92"
+   width="162"
+   height="92"
+   version="1.1"
+   id="svg5"
+   sodipodi:docname="vertana-logo.svg"
+   inkscape:version="1.4.2 (ebf0e940d0, 2025-05-08)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview5"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="3.2909091"
+     inkscape:cx="178.82597"
+     inkscape:cy="108.1768"
+     inkscape:window-width="3072"
+     inkscape:window-height="1659"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg5" />
+  <defs
+     id="defs3">
+    <linearGradient
+       id="bubbleGradient"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="1">
+      <stop
+         offset="0%"
+         stop-color="#9E4545"
+         id="stop1" />
+      <stop
+         offset="50%"
+         stop-color="#7D3636"
+         id="stop2" />
+      <stop
+         offset="100%"
+         stop-color="#5A2828"
+         id="stop3" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#bubbleGradient"
+       id="linearGradient7"
+       x1="126.00035"
+       y1="6.999649"
+       x2="126.00035"
+       y2="91.000351"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#bubbleGradient"
+       id="linearGradient8"
+       x1="5.7055402"
+       y1="10.516094"
+       x2="95.092339"
+       y2="99.902893"
+       gradientTransform="scale(1.0516094,0.9509234)"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <!-- Left speech bubble (rounded square with hollow center) -->
+  <!-- Right speech bubble (circle with hollow center) -->
+  <g
+     id="g7"
+     inkscape:label="vertana"
+     transform="matrix(0.99999568,0,0,1,-5.9999741,-3)">
+    <path
+       d="m 28,10 h 50 q 22,0 22,22 v 26 q 0,22 -22,22 H 50 C 45,80 42,85 38,95 36,90 36,85 36,80 H 28 Q 6,80 6,58 V 32 Q 6,10 28,10 Z m 10,16 h 30 q 16,0 16,16 v 6 Q 84,64 68,64 H 38 Q 22,64 22,48 V 42 Q 22,26 38,26 Z"
+       fill="url(#bubbleGradient)"
+       fill-rule="evenodd"
+       id="path3"
+       inkscape:label="left"
+       style="fill:url(#linearGradient8)" />
+    <path
+       id="path4"
+       d="m 126,3 a 42,42 0 0 0 0,84 42,42 0 0 0 20.88672,-5.5625 c 2.06304,3.290019 3.9409,8.13155 6.11328,13.5625 1.59516,-7.975817 1.91902,-14.679616 1.98438,-19.603516 A 42,42 0 0 0 126,3 Z m 0,16 a 26,26 0 0 1 0,52 26,26 0 0 1 0,-52 z"
+       style="fill:url(#linearGradient7)"
+       inkscape:label="right" />
+  </g>
+  <!-- Right bubble tail (slightly darker) -->
+</svg>

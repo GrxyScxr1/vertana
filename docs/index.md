@@ -10,6 +10,9 @@ hero:
   name: Vertana
   text: LLM-powered agentic translation library
   tagline: High-quality translations through autonomous agent workflows
+  image:
+    src: /vertana.svg
+    alt: Vertana logo
   actions:
   - theme: brand
     text: Get started
