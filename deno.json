@@ -4,6 +4,7 @@
   ],
   "imports": {
     "@ai-sdk/anthropic": "npm:@ai-sdk/anthropic@^3.0.1",
+    "@ai-sdk/provider": "npm:@ai-sdk/provider@^3.0.0",
     "dom-serializer": "npm:dom-serializer@^2.0.0",
     "domhandler": "npm:domhandler@^5.0.3",
     "htmlparser2": "npm:htmlparser2@^10.0.0",

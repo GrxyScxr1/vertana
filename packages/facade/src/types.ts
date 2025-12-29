@@ -170,6 +170,12 @@ export interface Translation {
    * Only present when best-of-N selection is used with multiple models.
    */
   readonly selectedModel?: LanguageModel;
+
+  /**
+   * The accumulated glossary from dynamic term extraction.
+   * Only present when dynamic glossary is enabled.
+   */
+  readonly accumulatedGlossary?: Glossary;
 }
 
 /**
@@ -201,6 +207,24 @@ export interface BestOfNOptions {
    * If not specified, the first model in the array is used.
    */
   readonly evaluatorModel?: LanguageModel;
+}
+
+/**
+ * Options for dynamic glossary accumulation during translation.
+ */
+export interface DynamicGlossaryOptions {
+  /**
+   * Maximum number of terms to extract from each chunk.
+   *
+   * @default `10`
+   */
+  readonly maxTermsPerChunk?: number;
+
+  /**
+   * The model to use for extracting terms.
+   * If not specified, the primary translation model is used.
+   */
+  readonly extractorModel?: LanguageModel;
 }
 
 /**
@@ -310,4 +334,15 @@ export interface TranslateOptions {
    * - `undefined` or `false`: Disabled (only first model is used).
    */
   readonly bestOfN?: boolean | BestOfNOptions;
+
+  /**
+   * Dynamic glossary accumulation settings.  When enabled, key terminology
+   * pairs are extracted from each translated chunk and accumulated for use
+   * in subsequent chunks, improving terminology consistency.
+   *
+   * - `true`: Enable dynamic glossary with default settings.
+   * - `DynamicGlossaryOptions`: Enable with custom settings.
+   * - `undefined` or `false`: Disabled.
+   */
+  readonly dynamicGlossary?: boolean | DynamicGlossaryOptions;
 }

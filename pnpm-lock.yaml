@@ -108,6 +108,9 @@ importers:
       '@vertana/core':
         specifier: 'workspace:'
         version: link:../core
+      zod:
+        specifier: 'catalog:'
+        version: 4.2.1
     devDependencies:
       '@ai-sdk/anthropic':
         specifier: 'catalog:'

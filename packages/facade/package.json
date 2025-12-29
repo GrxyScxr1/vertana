@@ -54,7 +54,8 @@
   "sideEffects": false,
   "dependencies": {
     "@standard-community/standard-json": "catalog:",
-    "@vertana/core": "workspace:"
+    "@vertana/core": "workspace:",
+    "zod": "catalog:"
   },
   "peerDependencies": {
     "ai": "catalog:"

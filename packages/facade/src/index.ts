@@ -6,6 +6,8 @@ import {
   countTokens,
   createHtmlChunker,
   createMarkdownChunker,
+  type Glossary,
+  type GlossaryEntry,
   type PassiveContextSource,
   refineChunks,
   selectBest,
@@ -23,9 +25,11 @@ import {
   extractTitle,
   type TranslatedChunk,
 } from "./prompt.ts";
+import { extractTerms } from "./terms.ts";
 import { convertToTools } from "./tools.ts";
 import type {
   BestOfNOptions,
+  DynamicGlossaryOptions,
   MediaType,
   TranslateOptions,
   Translation,
@@ -72,6 +76,7 @@ function combineContextResults(results: readonly ContextResult[]): string {
 export type {
   BestOfNOptions,
   ChunkingProgress,
+  DynamicGlossaryOptions,
   GatheringContextProgress,
   MediaType,
   PromptingProgress,
@@ -84,6 +89,8 @@ export type {
   TranslationProgress,
   TranslationTone,
 } from "./types.ts";
+
+export { extractTerms } from "./terms.ts";
 
 /**
  * Gets the default chunker based on media type.
@@ -168,6 +175,12 @@ export async function translate(
       ? options.bestOfN === true ? {} : options.bestOfN
       : null;
 
+  // Determine if dynamic glossary should be used
+  const dynamicGlossaryOptions: DynamicGlossaryOptions | null =
+    options?.dynamicGlossary != null && options.dynamicGlossary !== false
+      ? options.dynamicGlossary === true ? {} : options.dynamicGlossary
+      : null;
+
   // When not using best-of-N, just use the first model
   const primaryModel = models[0];
 
@@ -188,15 +201,36 @@ export async function translate(
     .filter((c) => c != null && c.trim().length > 0)
     .join("\n\n");
 
-  // Build the system prompt
-  const systemPrompt = buildSystemPrompt(targetLanguage, {
+  // Base options for system prompt (without glossary, which may be accumulated)
+  const baseSystemPromptOptions = {
     sourceLanguage: options?.sourceLanguage,
     tone: options?.tone,
     domain: options?.domain,
     mediaType: options?.mediaType,
     context: combinedContext || undefined,
-    glossary: options?.glossary,
-  });
+  };
+
+  // Initial glossary from options
+  const initialGlossary: Glossary = options?.glossary ?? [];
+
+  // Accumulated glossary for dynamic term extraction
+  const accumulatedGlossary: GlossaryEntry[] = [];
+
+  /**
+   * Builds system prompt with the current glossary state.
+   */
+  function buildCurrentSystemPrompt(): string {
+    const currentGlossary: Glossary = accumulatedGlossary.length > 0
+      ? [...initialGlossary, ...accumulatedGlossary]
+      : initialGlossary;
+    return buildSystemPrompt(targetLanguage, {
+      ...baseSystemPromptOptions,
+      glossary: currentGlossary.length > 0 ? currentGlossary : undefined,
+    });
+  }
+
+  // Build the initial system prompt
+  const systemPrompt = buildCurrentSystemPrompt();
 
   // Determine the chunker to use
   const chunker = options?.chunker === null
@@ -337,6 +371,36 @@ export async function translate(
       options?.onProgress?.({ stage: "refining", progress: 1 });
     }
 
+    // Extract terms for dynamic glossary (single chunk case)
+    if (dynamicGlossaryOptions != null) {
+      const extractorModel = dynamicGlossaryOptions.extractorModel ??
+        primaryModel;
+      const maxTermsPerChunk = dynamicGlossaryOptions.maxTermsPerChunk ?? 10;
+      const extractedTerms = await extractTerms(
+        extractorModel,
+        text,
+        translatedText,
+        {
+          maxTerms: maxTermsPerChunk,
+          signal: options?.signal,
+        },
+      );
+
+      for (const term of extractedTerms) {
+        const isDuplicate = accumulatedGlossary.some(
+          (existing) =>
+            existing.original.toLowerCase() === term.original.toLowerCase(),
+        ) ||
+          initialGlossary.some(
+            (existing) =>
+              existing.original.toLowerCase() === term.original.toLowerCase(),
+          );
+        if (!isDuplicate) {
+          accumulatedGlossary.push(term);
+        }
+      }
+    }
+
     const processingTime = performance.now() - startTime;
 
     return {
@@ -347,6 +411,9 @@ export async function translate(
       qualityScore,
       refinementIterations,
       selectedModel: winningModel,
+      accumulatedGlossary: accumulatedGlossary.length > 0
+        ? accumulatedGlossary
+        : undefined,
     };
   }
 
@@ -372,12 +439,22 @@ export async function translate(
       totalChunks: chunks.length,
     });
 
+    // Build system prompt with current glossary state (may include accumulated terms)
+    const currentSystemPrompt = dynamicGlossaryOptions != null
+      ? buildCurrentSystemPrompt()
+      : systemPrompt;
+
+    // Current glossary for evaluation (initial + accumulated)
+    const currentGlossary: Glossary = accumulatedGlossary.length > 0
+      ? [...initialGlossary, ...accumulatedGlossary]
+      : initialGlossary;
+
     // Translate current chunk with all models in parallel
     const chunkResults = await Promise.all(
       modelsToUse.map(async (model) => {
         const result = await translateChunk(
           model,
-          systemPrompt,
+          currentSystemPrompt,
           chunks[i].content,
           previousChunks,
           tools,
@@ -407,7 +484,7 @@ export async function translate(
         {
           targetLanguage,
           sourceLanguage: options?.sourceLanguage,
-          glossary: options?.glossary,
+          glossary: currentGlossary.length > 0 ? currentGlossary : undefined,
           signal: options?.signal,
         },
       );
@@ -427,6 +504,38 @@ export async function translate(
     } else {
       selectedTranslation = chunkResults[0].text;
       finalChunks.push(selectedTranslation);
+    }
+
+    // Extract and accumulate terms if dynamic glossary is enabled
+    if (dynamicGlossaryOptions != null) {
+      const extractorModel = dynamicGlossaryOptions.extractorModel ??
+        primaryModel;
+      const maxTermsPerChunk = dynamicGlossaryOptions.maxTermsPerChunk ?? 10;
+
+      const extractedTerms = await extractTerms(
+        extractorModel,
+        chunks[i].content,
+        selectedTranslation,
+        {
+          maxTerms: maxTermsPerChunk,
+          signal: options?.signal,
+        },
+      );
+
+      // Add extracted terms to accumulated glossary (avoiding duplicates)
+      for (const term of extractedTerms) {
+        const isDuplicate = accumulatedGlossary.some(
+          (existing) =>
+            existing.original.toLowerCase() === term.original.toLowerCase(),
+        ) ||
+          initialGlossary.some(
+            (existing) =>
+              existing.original.toLowerCase() === term.original.toLowerCase(),
+          );
+        if (!isDuplicate) {
+          accumulatedGlossary.push(term);
+        }
+      }
     }
 
     // Add to previous chunks for context in next iteration
@@ -471,6 +580,11 @@ export async function translate(
       totalChunks: chunks.length,
     });
 
+    // Use accumulated glossary for refinement if available
+    const refinementGlossary: Glossary = accumulatedGlossary.length > 0
+      ? [...initialGlossary, ...accumulatedGlossary]
+      : initialGlossary;
+
     const refineResult = await refineChunks(
       winningModel ?? primaryModel,
       originalChunks,
@@ -480,7 +594,9 @@ export async function translate(
         sourceLanguage: options?.sourceLanguage,
         targetScore: options.refinement.qualityThreshold ?? 0.85,
         maxIterations,
-        glossary: options?.glossary,
+        glossary: refinementGlossary.length > 0
+          ? refinementGlossary
+          : undefined,
         evaluateBoundaries: true,
         signal: options?.signal,
       },
@@ -514,5 +630,8 @@ export async function translate(
     qualityScore,
     refinementIterations,
     selectedModel: winningModel,
+    accumulatedGlossary: accumulatedGlossary.length > 0
+      ? accumulatedGlossary
+      : undefined,
   };
 }

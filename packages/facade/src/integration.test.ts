@@ -395,4 +395,195 @@ Second paragraph about science and discovery.
       });
     },
   );
+
+  describe(
+    "dynamic glossary accumulation",
+    { skip: !hasTestModel() && "TEST_MODEL not set" },
+    () => {
+      it("extracts and accumulates terms during translation", async () => {
+        const model = await getModel();
+
+        // Multi-chunk text with consistent terminology
+        const longText = `
+Machine learning is transforming the software industry. Companies are
+investing heavily in artificial intelligence research.
+
+Neural networks are a key component of machine learning systems. These
+networks can learn complex patterns from data.
+
+Deep learning, a subset of machine learning, uses multiple neural network
+layers. This approach has revolutionized computer vision and natural
+language processing.
+        `.trim();
+
+        const result = await translate(
+          model,
+          "ko",
+          longText,
+          {
+            dynamicGlossary: true,
+          },
+        );
+
+        // Should have accumulated glossary
+        assert.ok(
+          result.accumulatedGlossary != null,
+          "Should have accumulated glossary",
+        );
+        assert.ok(
+          result.accumulatedGlossary.length > 0,
+          "Accumulated glossary should not be empty",
+        );
+
+        // Check that some expected terms were extracted
+        const terms = result.accumulatedGlossary.map((t) =>
+          t.original.toLowerCase()
+        );
+        const hasRelevantTerm = terms.some(
+          (t) =>
+            t.includes("machine learning") ||
+            t.includes("neural network") ||
+            t.includes("artificial intelligence") ||
+            t.includes("deep learning"),
+        );
+        assert.ok(hasRelevantTerm, "Should extract relevant technical terms");
+      });
+
+      it("uses accumulated glossary for consistent terminology", async () => {
+        const model = await getModel();
+
+        // Two paragraphs with the same term
+        const text = `
+Artificial intelligence is changing how we work. AI systems can automate
+many tasks that previously required human intelligence.
+
+The future of artificial intelligence is bright. AI will continue to
+evolve and become more capable.
+        `.trim();
+
+        const result = await translate(
+          model,
+          "ko",
+          text,
+          {
+            dynamicGlossary: {
+              maxTermsPerChunk: 5,
+            },
+          },
+        );
+
+        assert.ok(result.accumulatedGlossary != null);
+
+        // The translation should be consistent - same term translated same way
+        // We can't verify the exact translation, but we can check the structure
+        assert.ok(result.text.length > 0, "Should produce translation");
+      });
+
+      it("avoids duplicate terms in accumulated glossary", async () => {
+        const model = await getModel();
+
+        // Repeat the same term multiple times across chunks
+        const text = `
+Machine learning is important. Machine learning helps businesses.
+
+Machine learning applications are growing. Machine learning is the future.
+        `.trim();
+
+        const result = await translate(
+          model,
+          "ko",
+          text,
+          {
+            dynamicGlossary: true,
+          },
+        );
+
+        if (result.accumulatedGlossary != null) {
+          // Check for no duplicates by original term
+          const originals = result.accumulatedGlossary.map((t) =>
+            t.original.toLowerCase()
+          );
+          const uniqueOriginals = new Set(originals);
+          assert.equal(
+            originals.length,
+            uniqueOriginals.size,
+            "Should not have duplicate terms in glossary",
+          );
+        }
+      });
+
+      it("combines initial glossary with accumulated terms", async () => {
+        const model = await getModel();
+
+        const text = `
+Artificial intelligence and machine learning are related fields.
+
+Deep learning is a subset of machine learning that uses neural networks.
+        `.trim();
+
+        const initialGlossary = [
+          { original: "artificial intelligence", translated: "인공지능" },
+        ];
+
+        const result = await translate(
+          model,
+          "ko",
+          text,
+          {
+            glossary: initialGlossary,
+            dynamicGlossary: true,
+          },
+        );
+
+        // Initial glossary term should be used
+        assert.ok(
+          result.text.includes("인공지능"),
+          "Should use initial glossary term",
+        );
+
+        // Accumulated glossary should not include the initial term
+        if (result.accumulatedGlossary != null) {
+          const hasAI = result.accumulatedGlossary.some(
+            (t) => t.original.toLowerCase() === "artificial intelligence",
+          );
+          assert.ok(
+            !hasAI,
+            "Accumulated glossary should not duplicate initial glossary terms",
+          );
+        }
+      });
+
+      it("respects maxTermsPerChunk option", async () => {
+        const model = await getModel();
+
+        const text = `
+This paragraph has many potential terms: software, hardware, programming,
+algorithms, data structures, databases, networking, and security.
+
+Another paragraph with different terms: user interface, backend, frontend,
+API, microservices, containers, and cloud computing.
+        `.trim();
+
+        const result = await translate(
+          model,
+          "ko",
+          text,
+          {
+            dynamicGlossary: {
+              maxTermsPerChunk: 2,
+            },
+          },
+        );
+
+        // With 2 chunks and max 2 terms per chunk, we should have at most 4 terms
+        // (could be less due to deduplication)
+        if (result.accumulatedGlossary != null) {
+          assert.ok(
+            result.accumulatedGlossary.length <= 4,
+            `Expected at most 4 terms, got ${result.accumulatedGlossary.length}`,
+          );
+        }
+      });
+    },
+  );
 }
