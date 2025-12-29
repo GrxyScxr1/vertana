@@ -18,7 +18,8 @@ export type TranslationTone =
   | "technical"
   | "casual"
   | "professional"
-  | "literary";
+  | "literary"
+  | "journalistic";
 
 const languageNames = new Intl.DisplayNames(["en"], { type: "language" });
 

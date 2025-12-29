@@ -17,7 +17,6 @@
     "npm:@standard-community/standard-json@~0.3.5": "0.3.5_@standard-schema+spec@1.1.0_@types+json-schema@7.0.15_@valibot+to-json-schema@1.5.0__valibot@1.2.0_quansync@0.2.11_valibot@1.2.0_zod@4.2.1",
     "npm:@standard-schema/spec@1": "1.1.0",
     "npm:@types/node@*": "22.15.15",
-    "npm:@valibot/to-json-schema@1": "1.5.0_valibot@1.2.0",
     "npm:@valibot/to-json-schema@^1.5.0": "1.5.0_valibot@1.2.0",
     "npm:ai@^6.0.3": "6.0.3_zod@4.2.1",
     "npm:dom-serializer@2": "2.0.0",

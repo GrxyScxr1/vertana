@@ -545,3 +545,117 @@ Use pipe tables with proper alignment markers:
  -  Use two blank lines before Setext-style section headings
  -  Place one blank line before and after code blocks
  -  End sections with reference links (if any) followed by a blank line
+
+
+VitePress documentation
+-----------------------
+
+The *docs/* directory contains VitePress documentation with additional features
+beyond standard Markdown.
+
+
+### Twoslash code blocks
+
+Use the `twoslash` modifier to enable TypeScript type checking and hover
+information in code blocks:
+
+~~~~~
+~~~~ typescript twoslash
+import { translate } from "@vertana/facade";
+import { openai } from "@ai-sdk/openai";
+
+const result = await translate(openai("gpt-4o"), "ko", "Hello");
+~~~~
+~~~~~
+
+
+### Fixture variables
+
+When code examples need variables that shouldn't be shown to readers,
+declare them *before* the `// ---cut-before---` directive.  Content before
+this directive is compiled but hidden from display:
+
+~~~~~
+~~~~ typescript twoslash
+const longDocument: string = "";
+// ---cut-before---
+import { translate } from "@vertana/facade";
+import { openai } from "@ai-sdk/openai";
+
+const result = await translate(
+  openai("gpt-4o"),
+  "ko",
+  longDocument
+);
+~~~~
+~~~~~
+
+The reader sees only the code after `---cut-before---`, but TypeScript
+checks the entire block including the hidden fixture.
+
+For functions that need to exist but shouldn't be shown, use `declare`:
+
+~~~~~
+~~~~ typescript twoslash
+declare function fetchStyleGuide(): Promise<string>;
+// ---cut-before---
+import { translate } from "@vertana/facade";
+
+const guide = await fetchStyleGuide();
+~~~~
+~~~~~
+
+
+### Definition lists
+
+VitePress supports definition lists for documenting terms, options,
+or properties:
+
+~~~~
+`text`
+:   The translated text
+
+`tokenUsed`
+:   Total tokens consumed during translation
+
+`processingTime`
+:   Time taken in milliseconds
+~~~~
+
+This renders as a formatted definition list with the term on one line
+and the description indented below.
+
+
+### Code groups
+
+Use code groups to show the same content for different package managers
+or environments:
+
+~~~~
+::: code-group
+
+~~~~ bash [Deno]
+deno add jsr:@vertana/facade
+~~~~
+
+~~~~ bash [npm]
+npm add @vertana/facade
+~~~~
+
+~~~~ bash [pnpm]
+pnpm add @vertana/facade
+~~~~
+
+:::
+~~~~
+
+
+### Building documentation
+
+~~~~ bash
+cd docs
+pnpm build    # Build for production (runs Twoslash type checking)
+pnpm dev      # Start development server
+~~~~
+
+Always run `pnpm build` before committing to catch Twoslash type errors.

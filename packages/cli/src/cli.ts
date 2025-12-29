@@ -43,6 +43,7 @@ export const translateCommand = command(
             "casual",
             "professional",
             "literary",
+            "journalistic",
           ] as const,
         ),
       ),
