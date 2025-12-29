@@ -1,6 +1,8 @@
 import { describe, it } from "./test-compat.ts";
 import assert from "node:assert/strict";
 import type { LanguageModel } from "ai";
+import { generateObject } from "ai";
+import { z } from "zod";
 import { evaluate } from "@vertana/core";
 import { translate } from "./index.ts";
 import { getTestModel, hasTestModel } from "./testing.ts";
@@ -585,6 +587,105 @@ API, microservices, containers, and cloud computing.
             `Expected at most 4 terms, got ${result.accumulatedGlossary.length}`,
           );
         }
+      });
+    },
+  );
+
+  describe(
+    "end-to-end semantic validation",
+    { skip: !hasTestModel() && "TEST_MODEL not set" },
+    () => {
+      it("produces semantically valid translation of markdown document", {
+        timeout: 120000,
+      }, async () => {
+        const model = await getModel();
+
+        const sourceDocument = `
+# Getting started with TypeScript
+
+TypeScript is a typed superset of JavaScript that compiles to plain
+JavaScript. It adds optional static typing and class-based object-oriented
+programming to the language.
+
+## Why TypeScript?
+
+TypeScript offers several advantages over plain JavaScript:
+
+- **Type Safety**: Catch errors at compile time rather than runtime.
+- **Better IDE Support**: Autocompletion, refactoring, and navigation.
+- **Improved Readability**: Types serve as documentation.
+
+## Installation
+
+To install TypeScript globally, run:
+
+\`\`\`bash
+npm install -g typescript
+\`\`\`
+
+Then you can compile TypeScript files using:
+
+\`\`\`bash
+tsc filename.ts
+\`\`\`
+
+## Basic types
+
+TypeScript supports the following basic types:
+
+1. **number**: All numbers, including integers and floats
+2. **string**: Text data
+3. **boolean**: true or false
+4. **array**: Collections of values
+5. **object**: Non-primitive types
+
+## Conclusion
+
+TypeScript helps you write more maintainable code by catching errors early
+and providing better tooling support. Start using TypeScript today to improve
+your JavaScript development experience.
+        `.trim();
+
+        // Translate the document
+        const result = await translate(
+          model,
+          "ko",
+          sourceDocument,
+          { mediaType: "text/markdown" },
+        );
+
+        // Use LLM to verify the translation is semantically valid
+        const verification = await generateObject({
+          model,
+          schema: z.object({
+            isValidTranslation: z.boolean().describe(
+              "Whether the target text is a valid translation of the source text",
+            ),
+            reasoning: z.string().describe(
+              "Brief explanation of the judgment",
+            ),
+          }),
+          prompt: `You are a translation validator. Determine if the target text
+is a valid Korean translation of the source text.
+
+A valid translation should:
+- Convey the same meaning as the source
+- Preserve the document structure (headings, lists, code blocks)
+- Be written in natural Korean
+
+Source (English):
+${sourceDocument}
+
+Target (Korean):
+${result.text}
+
+Is this a valid translation?`,
+        });
+
+        assert.ok(
+          verification.object.isValidTranslation,
+          `Translation validation failed: ${verification.object.reasoning}`,
+        );
       });
     },
   );

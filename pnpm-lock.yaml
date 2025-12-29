@@ -148,6 +148,9 @@ importers:
       valibot:
         specifier: 'catalog:'
         version: 1.2.0(typescript@5.9.3)
+      zod:
+        specifier: 'catalog:'
+        version: 4.2.1
 
 packages:
 

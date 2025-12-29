@@ -68,7 +68,8 @@
     "ai": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:",
-    "valibot": "catalog:"
+    "valibot": "catalog:",
+    "zod": "catalog:"
   },
   "scripts": {
     "build": "tsdown",
