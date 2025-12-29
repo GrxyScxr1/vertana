@@ -8,7 +8,6 @@ import {
   extractTitle,
   type Glossary,
   type PassiveContextSource,
-  refineChunks,
   translateChunks,
   type TranslateChunksComplete,
 } from "@vertana/core";
@@ -18,6 +17,7 @@ import type {
   BestOfNOptions,
   DynamicGlossaryOptions,
   MediaType,
+  RefinementOptions,
   TranslateOptions,
   Translation,
 } from "./types.ts";
@@ -191,6 +191,12 @@ export async function translate(
   let qualityScoreCount = 0;
   const modelWinCounts = new Map<LanguageModel, number>();
 
+  // Normalize refinement options
+  const refinementOptions: RefinementOptions | null =
+    options?.refinement != null && options.refinement !== false
+      ? options.refinement === true ? {} : options.refinement
+      : null;
+
   for await (
     const event of translateChunks(sourceChunks, {
       targetLanguage,
@@ -204,6 +210,7 @@ export async function translate(
       models: modelsToUse,
       evaluatorModel: bestOfNOptions?.evaluatorModel,
       dynamicGlossary: dynamicGlossaryOptions,
+      refinement: refinementOptions,
       tools,
       signal: options?.signal,
     })
@@ -235,6 +242,16 @@ export async function translate(
           (modelWinCounts.get(event.selectedModel) ?? 0) + 1,
         );
       }
+
+      // Report refining start after last chunk if refinement is enabled
+      if (event.index === totalChunks - 1 && refinementOptions != null) {
+        options?.onProgress?.({
+          stage: "refining",
+          progress: 0,
+          maxIterations: refinementOptions.maxIterations ?? 3,
+          totalChunks,
+        });
+      }
     } else {
       result = event;
     }
@@ -242,6 +259,17 @@ export async function translate(
 
   if (result == null) {
     throw new Error("Translation did not complete");
+  }
+
+  // Report refining completion if refinement was used
+  if (result.refinementIterations != null) {
+    options?.onProgress?.({
+      stage: "refining",
+      progress: 1,
+      iteration: result.refinementIterations,
+      maxIterations: refinementOptions?.maxIterations ?? 3,
+      totalChunks,
+    });
   }
 
   // Determine winning model
@@ -256,61 +284,13 @@ export async function translate(
     }
   }
 
-  let finalChunks = [...result.translations];
-  let qualityScore = qualityScoreCount > 0
-    ? totalQualityScore / qualityScoreCount
-    : undefined;
-  let refinementIterations: number | undefined;
+  // Use refinement quality score if available, otherwise best-of-N average
+  const qualityScore = result.qualityScore ??
+    (qualityScoreCount > 0 ? totalQualityScore / qualityScoreCount : undefined);
 
-  // 7. Apply refinement if enabled
-  if (options?.refinement != null) {
-    const maxIterations = options.refinement.maxIterations ?? 3;
-
-    options?.onProgress?.({
-      stage: "refining",
-      progress: 0,
-      maxIterations,
-      totalChunks,
-    });
-
-    const refinementGlossary: Glossary = result.accumulatedGlossary.length > 0
-      ? [...initialGlossary, ...result.accumulatedGlossary]
-      : initialGlossary;
-
-    const refineResult = await refineChunks(
-      winningModel ?? primaryModel,
-      sourceChunks,
-      finalChunks,
-      {
-        targetLanguage,
-        sourceLanguage: options?.sourceLanguage,
-        targetScore: options.refinement.qualityThreshold ?? 0.85,
-        maxIterations,
-        glossary: refinementGlossary.length > 0
-          ? refinementGlossary
-          : undefined,
-        evaluateBoundaries: totalChunks > 1,
-        signal: options?.signal,
-      },
-    );
-
-    finalChunks = [...refineResult.chunks];
-    qualityScore = refineResult.scores.reduce((a, b) => a + b, 0) /
-      refineResult.scores.length;
-    refinementIterations = refineResult.totalIterations;
-
-    options?.onProgress?.({
-      stage: "refining",
-      progress: 1,
-      iteration: refinementIterations,
-      maxIterations,
-      totalChunks,
-    });
-  }
-
-  // 8. Return result
+  // 7. Return result
   const processingTime = performance.now() - startTime;
-  const combinedText = finalChunks.join("\n\n");
+  const combinedText = result.translations.join("\n\n");
 
   return {
     text: combinedText,
@@ -318,7 +298,7 @@ export async function translate(
     tokenUsed: result.totalTokensUsed,
     processingTime,
     qualityScore,
-    refinementIterations,
+    refinementIterations: result.refinementIterations,
     selectedModel: winningModel,
     accumulatedGlossary: result.accumulatedGlossary.length > 0
       ? result.accumulatedGlossary

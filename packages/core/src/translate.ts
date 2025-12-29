@@ -13,6 +13,7 @@ import {
   type TranslatedChunk,
   type TranslationTone,
 } from "./prompt.ts";
+import { refineChunks } from "./refine.ts";
 import { type Candidate, selectBest } from "./select.ts";
 import { extractTerms } from "./terms.ts";
 
@@ -32,6 +33,26 @@ export interface DynamicGlossaryOptions {
    * If not specified, the primary translation model is used.
    */
   readonly extractorModel?: LanguageModel;
+}
+
+/**
+ * Options for iterative refinement of translations.
+ */
+export interface RefinementOptions {
+  /**
+   * The minimum acceptable quality score (0-1). Chunks with scores below
+   * this threshold will be refined.
+   *
+   * @default `0.85`
+   */
+  readonly qualityThreshold?: number;
+
+  /**
+   * Maximum number of refinement iterations per chunk.
+   *
+   * @default `3`
+   */
+  readonly maxIterations?: number;
 }
 
 /**
@@ -97,6 +118,13 @@ export interface TranslateChunksOptions {
    * and accumulated for use in subsequent chunks.
    */
   readonly dynamicGlossary?: DynamicGlossaryOptions | null;
+
+  /**
+   * Refinement settings for iterative translation improvement.
+   * When enabled, chunks are evaluated and refined until they meet
+   * the quality threshold or reach maximum iterations.
+   */
+  readonly refinement?: RefinementOptions | null;
 
   /**
    * Optional tools for passive context sources.
@@ -166,6 +194,18 @@ export interface TranslateChunksComplete {
    * All accumulated glossary terms from dynamic extraction.
    */
   readonly accumulatedGlossary: readonly GlossaryEntry[];
+
+  /**
+   * Average quality score across all chunks.
+   * Only present if best-of-N selection or refinement was used.
+   */
+  readonly qualityScore?: number;
+
+  /**
+   * Total number of refinement iterations performed.
+   * Only present if refinement was enabled.
+   */
+  readonly refinementIterations?: number;
 }
 
 /**
@@ -238,6 +278,7 @@ export async function* translateChunks(
     models,
     evaluatorModel,
     dynamicGlossary,
+    refinement,
     tools,
     signal,
   } = options;
@@ -398,11 +439,46 @@ export async function* translateChunks(
     };
   }
 
+  // Apply refinement if enabled
+  let finalTranslations = translations;
+  let finalQualityScore: number | undefined;
+  let refinementIterations: number | undefined;
+
+  if (refinement != null) {
+    const refinementGlossary: Glossary = accumulatedGlossary.length > 0
+      ? [...initialGlossary, ...accumulatedGlossary]
+      : initialGlossary;
+
+    const refineResult = await refineChunks(
+      primaryModel,
+      sourceChunks,
+      translations,
+      {
+        targetLanguage,
+        sourceLanguage,
+        targetScore: refinement.qualityThreshold ?? 0.85,
+        maxIterations: refinement.maxIterations ?? 3,
+        glossary: refinementGlossary.length > 0
+          ? refinementGlossary
+          : undefined,
+        evaluateBoundaries: sourceChunks.length > 1,
+        signal,
+      },
+    );
+
+    finalTranslations = [...refineResult.chunks];
+    finalQualityScore = refineResult.scores.reduce((a, b) => a + b, 0) /
+      refineResult.scores.length;
+    refinementIterations = refineResult.totalIterations;
+  }
+
   // Yield completion event
   yield {
     type: "complete",
-    translations,
+    translations: finalTranslations,
     totalTokensUsed,
     accumulatedGlossary,
+    qualityScore: finalQualityScore,
+    refinementIterations,
   };
 }

@@ -62,6 +62,7 @@ export {
 export { extractTerms, type ExtractTermsOptions } from "./terms.ts";
 export {
   type DynamicGlossaryOptions,
+  type RefinementOptions,
   translateChunks,
   type TranslateChunksComplete,
   type TranslateChunksEvent,

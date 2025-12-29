@@ -294,8 +294,12 @@ export interface TranslateOptions {
    * Refinement settings for iterative translation improvement.  When enabled,
    * the translation will be evaluated and refined until the quality threshold
    * is met or the maximum number of iterations is reached.
+   *
+   * - `true`: Enable refinement with default settings.
+   * - `RefinementOptions`: Enable with custom settings.
+   * - `undefined` or `false`: Disabled.
    */
-  readonly refinement?: RefinementOptions;
+  readonly refinement?: boolean | RefinementOptions;
 
   /**
    * A custom chunker function for splitting long texts.  If not provided,
