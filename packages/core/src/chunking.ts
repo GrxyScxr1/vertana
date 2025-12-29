@@ -1,4 +1,7 @@
+import { getLogger } from "@logtape/logtape";
 import type { MediaType } from "./prompt.ts";
+
+const logger = getLogger(["vertana", "core", "chunking"]);
 
 // Re-export MediaType from prompt.ts for convenience
 export type { MediaType };
@@ -159,10 +162,21 @@ export async function chunkText(
   const signal = options?.signal;
   signal?.throwIfAborted();
 
+  const mediaType = options?.mediaType ?? "text/markdown";
+
   // If chunker is explicitly null, return text as single chunk
   if (options?.chunker === null) {
+    logger.debug("Chunking disabled, returning as single chunk.", {
+      textLength: text.length,
+    });
     return [text];
   }
+
+  logger.debug("Chunking text...", {
+    mediaType,
+    textLength: text.length,
+    maxTokens: options?.maxTokens ?? 4096,
+  });
 
   // Get chunker: use provided or get default based on mediaType
   const chunker = options?.chunker ??
@@ -184,8 +198,16 @@ export async function chunkText(
 
   // If no chunks produced, return text as single chunk
   if (chunks.length === 0) {
+    logger.debug("No chunks produced, returning as single chunk.", {
+      textLength: text.length,
+    });
     return [text];
   }
+
+  logger.debug("Chunking completed.", {
+    chunkCount: chunks.length,
+    mediaType,
+  });
 
   // Extract content from chunks
   return chunks.map((c) => c.content);

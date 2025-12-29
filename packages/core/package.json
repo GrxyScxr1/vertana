@@ -165,6 +165,7 @@
   },
   "sideEffects": false,
   "dependencies": {
+    "@logtape/logtape": "catalog:",
     "@standard-community/standard-json": "catalog:",
     "dom-serializer": "catalog:",
     "domhandler": "catalog:",

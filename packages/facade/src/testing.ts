@@ -11,7 +11,8 @@ export type ProviderName = "openai" | "anthropic" | "google";
  *
  * @param modelString The model string (e.g., "openai:gpt-4o-mini").
  * @returns The language model instance.
- * @throws If the provider is not supported or the format is invalid.
+ * @throws {SyntaxError} If the model string format is invalid.
+ * @throws {TypeError} If the provider is not supported.
  *
  * @example
  * ```typescript
@@ -25,9 +26,9 @@ export async function createModelFromString(
 ): Promise<LanguageModel> {
   const colonIndex = modelString.indexOf(":");
   if (colonIndex === -1) {
-    throw new Error(
+    throw new SyntaxError(
       `Invalid model string format: "${modelString}". ` +
-        'Expected format: "provider:model" (e.g., "openai:gpt-4o-mini")',
+        'Expected format: "provider:model" (e.g., "openai:gpt-4o-mini").',
     );
   }
 
@@ -35,7 +36,7 @@ export async function createModelFromString(
   const modelId = modelString.slice(colonIndex + 1);
 
   if (modelId === "") {
-    throw new Error(
+    throw new SyntaxError(
       `Invalid model string format: "${modelString}". ` +
         "Model ID cannot be empty.",
     );
@@ -58,9 +59,9 @@ export async function createModelFromString(
       return google(modelId);
     }
     default:
-      throw new Error(
+      throw new TypeError(
         `Unsupported provider: "${provider}". ` +
-          'Supported providers: "openai", "anthropic", "google"',
+          'Supported providers: "openai", "anthropic", "google".',
       );
   }
 }

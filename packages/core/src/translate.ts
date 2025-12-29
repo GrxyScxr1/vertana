@@ -1,3 +1,4 @@
+import { getLogger } from "@logtape/logtape";
 import {
   generateText,
   type LanguageModel,
@@ -16,6 +17,8 @@ import {
 import { refineChunks } from "./refine.ts";
 import { type Candidate, selectBest } from "./select.ts";
 import { extractTerms } from "./terms.ts";
+
+const logger = getLogger(["vertana", "core", "translate"]);
 
 /**
  * Options for dynamic glossary accumulation during chunk translation.
@@ -287,6 +290,18 @@ export async function* translateChunks(
   const useBestOfN = models.length > 1;
   const hasPassiveSources = tools != null && Object.keys(tools).length > 0;
 
+  logger.info(
+    "Starting translation of {chunkCount} chunks with {modelCount} model(s)...",
+    {
+      chunkCount: sourceChunks.length,
+      modelCount: models.length,
+      targetLanguage: targetLanguage.toString(),
+      useBestOfN,
+      dynamicGlossary: dynamicGlossary != null,
+      refinement: refinement != null,
+    },
+  );
+
   // Base options for system prompt (without glossary, which may be accumulated)
   const baseSystemPromptOptions = {
     sourceLanguage,
@@ -318,6 +333,11 @@ export async function* translateChunks(
 
   for (let i = 0; i < sourceChunks.length; i++) {
     signal?.throwIfAborted();
+
+    logger.debug("Translating chunk {index} of {total}...", {
+      index: i + 1,
+      total: sourceChunks.length,
+    });
 
     // Build system prompt with current glossary state
     const currentSystemPrompt = dynamicGlossary != null
@@ -383,6 +403,11 @@ export async function* translateChunks(
       selectedTranslation = selectionResult.best.text;
       selectedModel = selectionResult.best.metadata;
       qualityScore = selectionResult.best.score;
+
+      logger.debug(
+        "Best-of-N selection for chunk {index}: score {score}.",
+        { index: i + 1, score: qualityScore },
+      );
     } else {
       selectedTranslation = chunkResults[0].text;
     }
@@ -406,6 +431,7 @@ export async function* translateChunks(
       );
 
       // Add extracted terms to accumulated glossary (avoiding duplicates)
+      let addedTerms = 0;
       for (const term of extractedTerms) {
         const isDuplicate = accumulatedGlossary.some(
           (existing) =>
@@ -417,8 +443,19 @@ export async function* translateChunks(
           );
         if (!isDuplicate) {
           accumulatedGlossary.push(term);
+          addedTerms++;
         }
       }
+
+      logger.debug(
+        "Extracted {extracted} terms from chunk {index}, added {added} new terms.",
+        {
+          extracted: extractedTerms.length,
+          index: i + 1,
+          added: addedTerms,
+          totalGlossary: accumulatedGlossary.length,
+        },
+      );
     }
 
     // Add to previous chunks for context in next iteration
@@ -445,6 +482,8 @@ export async function* translateChunks(
   let refinementIterations: number | undefined;
 
   if (refinement != null) {
+    logger.info("Starting refinement phase...");
+
     const refinementGlossary: Glossary = accumulatedGlossary.length > 0
       ? [...initialGlossary, ...accumulatedGlossary]
       : initialGlossary;
@@ -470,7 +509,18 @@ export async function* translateChunks(
     finalQualityScore = refineResult.scores.reduce((a, b) => a + b, 0) /
       refineResult.scores.length;
     refinementIterations = refineResult.totalIterations;
+
+    logger.info(
+      "Refinement completed after {iterations} iteration(s), average score: {score}.",
+      { iterations: refinementIterations, score: finalQualityScore },
+    );
   }
+
+  logger.info("Translation completed.", {
+    totalChunks: sourceChunks.length,
+    totalTokensUsed,
+    glossaryTerms: accumulatedGlossary.length,
+  });
 
   // Yield completion event
   yield {

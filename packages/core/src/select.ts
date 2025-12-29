@@ -1,6 +1,9 @@
+import { getLogger } from "@logtape/logtape";
 import type { LanguageModel } from "ai";
 import type { Glossary } from "./glossary.ts";
 import { evaluate, type TranslationIssue } from "./evaluation.ts";
+
+const logger = getLogger(["vertana", "core", "select"]);
 
 /**
  * A translation candidate to be evaluated.
@@ -85,6 +88,7 @@ export interface SelectBestResult<T = unknown> {
  * @param candidates The translation candidates to evaluate.
  * @param options Selection options.
  * @returns A promise that resolves to the selection result.
+ * @throws {RangeError} If no candidates are provided.
  */
 export async function selectBest<T = unknown>(
   evaluatorModel: LanguageModel,
@@ -93,8 +97,12 @@ export async function selectBest<T = unknown>(
   options: SelectBestOptions,
 ): Promise<SelectBestResult<T>> {
   if (candidates.length === 0) {
-    throw new Error("At least one candidate is required");
+    throw new RangeError("At least one candidate is required.");
   }
+
+  logger.debug("Selecting best from {count} candidates...", {
+    count: candidates.length,
+  });
 
   // Evaluate all candidates
   const evaluatedCandidates: Array<{
@@ -123,6 +131,12 @@ export async function selectBest<T = unknown>(
       score: evaluation.score,
       issues: evaluation.issues,
     });
+
+    logger.debug("Candidate {index} score: {score}.", {
+      index: evaluatedCandidates.length,
+      score: evaluation.score,
+      issues: evaluation.issues.length,
+    });
   }
 
   // Sort by score (descending) and assign ranks
@@ -135,6 +149,11 @@ export async function selectBest<T = unknown>(
     issues: item.issues,
     rank: index + 1,
   }));
+
+  logger.debug("Selected best candidate with score: {score}.", {
+    score: rankedCandidates[0].score,
+    totalCandidates: candidates.length,
+  });
 
   return {
     best: rankedCandidates[0],

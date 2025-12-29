@@ -216,6 +216,97 @@ Code style
  -  Avoid the `assert.equal(..., true)` or `assert.equal(..., false)` patterns.
     Use `assert.ok(...)` and `assert.ok(!...)` instead.
 
+### Error messages
+
+ -  Prefer specific error types over generic `Error`.  Use built-in types
+    like `TypeError`, `RangeError`, or `SyntaxError` when appropriate.
+    If none of the built-in types fit, define and export a custom error class:
+
+    ~~~~ typescript
+    // Good: specific error type
+    throw new TypeError("Expected a string.");
+    throw new RangeError("Index out of bounds.");
+
+    // Good: custom error class (must be exported)
+    export class TranslationError extends Error {
+      constructor(message: string) {
+        super(message);
+        this.name = "TranslationError";
+      }
+    }
+
+    // Avoid: generic Error when a more specific type applies
+    throw new Error("Expected a string.");
+    ~~~~
+
+ -  End error messages with a period:
+
+    ~~~~ typescript
+    throw new Error("Translation did not complete.");
+    throw new Error("Invalid model configuration.");
+    ~~~~
+
+ -  When the message ends with a value after a colon, the period can be
+    omitted:
+
+    ~~~~ typescript
+    throw new Error(`Failed to load file: ${filePath}`);
+    throw new Error(`Unsupported media type: ${mediaType}`);
+    ~~~~
+
+ -  Functions or methods that throw exceptions must include the `@throws` tag
+    in their JSDoc comments:
+
+    ~~~~ typescript
+    /**
+     * Parses a model string into provider and model ID.
+     *
+     * @param modelString The model string in "provider:model" format.
+     * @returns The parsed provider and model ID.
+     * @throws {SyntaxError} If the model string format is invalid.
+     */
+    export function parseModelString(modelString: string): ParsedModel {
+      // ...
+    }
+    ~~~~
+
+### Log messages
+
+ -  This project uses [LogTape] for logging.  Refer to the [LogTape LLM
+    documentation] for detailed usage.
+
+ -  Use [structured logging] with LogTape instead of string interpolation:
+
+    ~~~~ typescript
+    // Good: structured logging with placeholders
+    logger.info("Processing chunk {index} of {total}...", { index: 3, total: 10 });
+    logger.debug("Selected model: {model}", { model: "gpt-4o" });
+
+    // Bad: string interpolation
+    logger.info(`Processing chunk ${index} of ${total}...`);
+    ~~~~
+
+ -  End log messages with a period, or with an ellipsis (`...`) for ongoing
+    operations:
+
+    ~~~~ typescript
+    logger.info("Translation completed successfully.", { chunks: 5 });
+    logger.info("Starting translation...");
+    logger.debug("Gathering context from sources...");
+    ~~~~
+
+ -  When the message ends with a value after a colon, the period can be
+    omitted:
+
+    ~~~~ typescript
+    logger.debug("Selected model: {model}", { model });
+    logger.error("Connection failed with status: {status}", { status: 503 });
+    ~~~~
+
+[LogTape]: https://logtape.org/
+[LogTape LLM documentation]: https://logtape.org/llms.txt
+[structured logging]: https://logtape.org/manual/struct
+
 
 Writing style
 -------------

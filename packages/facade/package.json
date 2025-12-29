@@ -53,6 +53,7 @@
   },
   "sideEffects": false,
   "dependencies": {
+    "@logtape/logtape": "catalog:",
     "@vertana/core": "workspace:"
   },
   "peerDependencies": {

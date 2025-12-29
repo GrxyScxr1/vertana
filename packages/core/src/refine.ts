@@ -1,3 +1,4 @@
+import { getLogger } from "@logtape/logtape";
 import { generateText, type LanguageModel } from "ai";
 import type { Glossary } from "./glossary.ts";
 import {
@@ -5,6 +6,8 @@ import {
   type EvaluationResult,
   type TranslationIssue,
 } from "./evaluation.ts";
+
+const logger = getLogger(["vertana", "core", "refine"]);
 
 /**
  * Options for the {@link refineChunks} function.
@@ -329,6 +332,8 @@ Evaluate the boundary coherence:`;
  * @param translatedChunks The translated chunks to refine.
  * @param options Refinement options.
  * @returns A promise that resolves to the refinement result.
+ * @throws {RangeError} If the number of original and translated chunks
+ *                      do not match.
  */
 export async function refineChunks(
   model: LanguageModel,
@@ -337,7 +342,7 @@ export async function refineChunks(
   options: RefineChunksOptions,
 ): Promise<RefineChunksResult> {
   if (originalChunks.length !== translatedChunks.length) {
-    throw new Error(
+    throw new RangeError(
       `Chunk count mismatch: ${originalChunks.length} original vs ${translatedChunks.length} translated`,
     );
   }
@@ -345,6 +350,12 @@ export async function refineChunks(
   const targetScore = options.targetScore ?? 0.85;
   const maxIterations = options.maxIterations ?? 3;
   const shouldEvaluateBoundaries = options.evaluateBoundaries ?? true;
+
+  logger.info("Starting refinement of {chunkCount} chunks...", {
+    chunkCount: originalChunks.length,
+    targetScore,
+    maxIterations,
+  });
 
   // Initialize working copies
   const refinedChunks = [...translatedChunks];
@@ -355,6 +366,11 @@ export async function refineChunks(
   // Evaluate and refine each chunk
   for (let i = 0; i < refinedChunks.length; i++) {
     options.signal?.throwIfAborted();
+
+    logger.debug("Evaluating chunk {index} of {total}...", {
+      index: i + 1,
+      total: refinedChunks.length,
+    });
 
     let currentText = refinedChunks[i];
     let evaluation: EvaluationResult;
@@ -368,6 +384,12 @@ export async function refineChunks(
     });
 
     scores[i] = evaluation.score;
+
+    logger.debug("Chunk {index} initial score: {score}.", {
+      index: i + 1,
+      score: evaluation.score,
+      issues: evaluation.issues.length,
+    });
 
     // Refinement loop for this chunk
     let iteration = 0;
@@ -408,6 +430,16 @@ export async function refineChunks(
         issuesAddressed,
       });
 
+      logger.debug(
+        "Chunk {chunkIndex} iteration {iteration}: {scoreBefore} → {scoreAfter}.",
+        {
+          chunkIndex: i + 1,
+          iteration,
+          scoreBefore,
+          scoreAfter: evaluation.score,
+        },
+      );
+
       scores[i] = evaluation.score;
     }
 
@@ -417,6 +449,10 @@ export async function refineChunks(
   // Evaluate boundaries if enabled and there are multiple chunks
   let boundaryEvaluations: BoundaryEvaluation[] | undefined;
   if (shouldEvaluateBoundaries && refinedChunks.length > 1) {
+    logger.debug("Evaluating {count} chunk boundaries...", {
+      count: refinedChunks.length - 1,
+    });
+
     boundaryEvaluations = [];
 
     for (let i = 0; i < refinedChunks.length - 1; i++) {
@@ -435,8 +471,26 @@ export async function refineChunks(
         chunkIndex: i,
         ...boundaryResult,
       });
+
+      if (boundaryResult.issues.length > 0) {
+        logger.warn(
+          "Boundary {index} has {issueCount} issue(s), score: {score}.",
+          {
+            index: i + 1,
+            issueCount: boundaryResult.issues.length,
+            score: boundaryResult.score,
+          },
+        );
+      }
     }
   }
+
+  const averageScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+  logger.info("Refinement completed.", {
+    totalIterations,
+    averageScore,
+    chunkCount: refinedChunks.length,
+  });
 
   return {
     chunks: refinedChunks,

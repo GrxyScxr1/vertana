@@ -1,6 +1,9 @@
+import { getLogger } from "@logtape/logtape";
 import { generateObject, type LanguageModel } from "ai";
 import { z } from "zod";
 import type { Glossary } from "./glossary.ts";
+
+const logger = getLogger(["vertana", "core", "evaluate"]);
 
 /**
  * Options for {@link TranslationEvaluator}.
@@ -224,6 +227,8 @@ export async function evaluate(
   translated: string,
   options: EvaluateOptions,
 ): Promise<EvaluationResult> {
+  logger.debug("Evaluating translation quality...");
+
   const systemPrompt = buildEvaluationSystemPrompt(options);
   const userPrompt = buildEvaluationUserPrompt(original, translated);
 
@@ -243,6 +248,11 @@ export async function evaluate(
       location: issue.location,
     }),
   );
+
+  logger.debug("Evaluation result: score {score}, {issueCount} issue(s).", {
+    score: result.object.score,
+    issueCount: issues.length,
+  });
 
   return {
     score: result.object.score,

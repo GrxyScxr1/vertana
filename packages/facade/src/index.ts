@@ -1,3 +1,4 @@
+import { getLogger } from "@logtape/logtape";
 import {
   chunkText,
   combineContextResults,
@@ -17,6 +18,8 @@ import type {
   TranslateOptions,
   Translation,
 } from "./types.ts";
+
+const logger = getLogger(["vertana", "facade", "translate"]);
 
 export type {
   BestOfNOptions,
@@ -50,6 +53,7 @@ export { extractTerms } from "@vertana/core";
  * @param text The text to be translated.
  * @param options Optional settings for the translation process.
  * @returns A promise that resolves to the translation result.
+ * @throws {Error} If the translation stream ends without a completion event.
  */
 export async function translate(
   model: LanguageModel | readonly LanguageModel[],
@@ -58,6 +62,11 @@ export async function translate(
   options?: TranslateOptions,
 ): Promise<Translation> {
   const startTime = performance.now();
+
+  logger.info("Starting translation...", {
+    targetLanguage: targetLanguage.toString(),
+    textLength: text.length,
+  });
 
   // 1. Normalize options
   const models = Array.isArray(model) ? model : [model];
@@ -83,6 +92,9 @@ export async function translate(
     );
     gatheredContext = combineContextResults(contextResults);
     options?.onProgress?.({ stage: "gatheringContext", progress: 1 });
+    logger.debug("Context gathering completed.", {
+      contextLength: gatheredContext.length,
+    });
   }
 
   const combinedContext = [options?.context, gatheredContext]
@@ -108,6 +120,7 @@ export async function translate(
 
   if (chunkingEnabled) {
     options?.onProgress?.({ stage: "chunking", progress: 1 });
+    logger.debug("Chunking completed.", { chunkCount: sourceChunks.length });
   }
 
   // 4. Prepare tools for passive sources
@@ -208,7 +221,7 @@ export async function translate(
   }
 
   if (result == null) {
-    throw new Error("Translation did not complete");
+    throw new Error("Translation did not complete.");
   }
 
   // Report refining completion if refinement was used
@@ -241,6 +254,13 @@ export async function translate(
   // 6. Return result
   const processingTime = performance.now() - startTime;
   const combinedText = result.translations.join("\n\n");
+
+  logger.info("Translation completed.", {
+    processingTimeMs: processingTime,
+    tokensUsed: result.totalTokensUsed,
+    qualityScore,
+    chunkCount: result.translations.length,
+  });
 
   return {
     text: combinedText,

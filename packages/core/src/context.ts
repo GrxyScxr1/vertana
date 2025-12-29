@@ -1,4 +1,7 @@
+import { getLogger } from "@logtape/logtape";
 import type { StandardSchemaV1 } from "@standard-schema/spec";
+
+const logger = getLogger(["vertana", "core", "context"]);
 
 /**
  * Options for the {@link ContextSource.gather} method.
@@ -163,12 +166,25 @@ export async function gatherRequiredContext(
     return [];
   }
 
+  logger.info("Gathering context from {count} required source(s)...", {
+    count: requiredSources.length,
+  });
+
   const results: ContextResult[] = [];
   for (const source of requiredSources) {
     signal?.throwIfAborted();
+    logger.debug("Gathering context from source: {name}...", {
+      name: source.name,
+    });
     const result = await source.gather({ signal });
     results.push(result);
   }
+
+  logger.info("Context gathering completed.", {
+    sourceCount: requiredSources.length,
+    totalContentLength: results.reduce((sum, r) => sum + r.content.length, 0),
+  });
+
   return results;
 }
 
@@ -181,8 +197,15 @@ export async function gatherRequiredContext(
 export function combineContextResults(
   results: readonly ContextResult[],
 ): string {
-  return results
+  const combined = results
     .map((r) => r.content)
     .filter((c) => c.trim().length > 0)
     .join("\n\n");
+
+  logger.debug("Combined {count} context result(s) into {length} characters.", {
+    count: results.length,
+    length: combined.length,
+  });
+
+  return combined;
 }
