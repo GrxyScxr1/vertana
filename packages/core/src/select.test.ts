@@ -1,4 +1,4 @@
-import { describe, it } from "node:test";
+import { describe, it } from "./test-compat.ts";
 import assert from "node:assert/strict";
 import type { LanguageModel } from "ai";
 import { selectBest } from "./select.ts";

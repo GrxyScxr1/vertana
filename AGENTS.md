@@ -160,6 +160,11 @@ This project follows test-driven development (TDD) practices:
  -  When using LLMs or coding agents, include credit via `Co-Authored-By:`.
     Include a permalink to the agent session if available.
 
+### Before committing
+
+ -  *Run all tests*: Before committing any changes, run `mise run test` to
+    ensure all tests pass across Deno, Node.js, and Bun runtimes.
+
 
 Code style
 ----------

@@ -1,4 +1,4 @@
-import { describe, it } from "node:test";
+import { describe, it } from "./test-compat.ts";
 import assert from "node:assert/strict";
 import type { LanguageModel } from "ai";
 import { evaluate } from "@vertana/core";
@@ -291,7 +291,9 @@ if (hasTestModel() || !("Bun" in globalThis)) {
     "chunking + refinement integration",
     { skip: !hasTestModel() && "TEST_MODEL not set" },
     () => {
-      it("refines multiple chunks with boundary evaluation", async () => {
+      it("refines multiple chunks with boundary evaluation", {
+        timeout: 120000,
+      }, async () => {
         const model = await getModel();
 
         // Long text that will be chunked
