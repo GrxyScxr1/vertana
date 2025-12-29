@@ -8,6 +8,7 @@
     "./context": "./src/context.ts",
     "./evaluation": "./src/evaluation.ts",
     "./glossary": "./src/glossary.ts",
+    "./html": "./src/html.ts",
     "./markdown": "./src/markdown.ts",
     "./refine": "./src/refine.ts",
     "./select": "./src/select.ts",

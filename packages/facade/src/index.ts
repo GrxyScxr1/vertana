@@ -4,6 +4,7 @@ import {
   type ContextResult,
   type ContextSource,
   countTokens,
+  createHtmlChunker,
   createMarkdownChunker,
   type PassiveContextSource,
   refineChunks,
@@ -84,9 +85,11 @@ export type {
  * @param mediaType The media type of the content.
  * @returns The appropriate chunker for the media type.
  */
-function getDefaultChunker(_mediaType?: MediaType) {
-  // For now, use markdown chunker for all types
-  // TODO: Add specialized chunkers for other media types
+function getDefaultChunker(mediaType?: MediaType) {
+  if (mediaType === "text/html") {
+    return createHtmlChunker();
+  }
+  // Use markdown chunker for markdown and plain text
   return createMarkdownChunker();
 }
 

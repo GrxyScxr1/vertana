@@ -30,10 +30,11 @@ Features
  -  Translation quality evaluation (accuracy, fluency, terminology, style)
  -  Iterative refinement with chunk-level and boundary evaluation
  -  Best-of-N selection with multiple models (parallel per-chunk evaluation)
+ -  HTML chunker with block element detection and attribute handling
 
 ### Planned
  -  Adaptive context window detection
- -  HTML and plain text chunkers
+ -  Plain text chunker
 
 
 Packages

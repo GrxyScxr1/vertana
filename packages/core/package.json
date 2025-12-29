@@ -82,6 +82,14 @@
       "require": "./dist/glossary.cjs",
       "import": "./dist/glossary.js"
     },
+    "./html": {
+      "types": {
+        "require": "./dist/html.d.cts",
+        "import": "./dist/html.d.ts"
+      },
+      "require": "./dist/html.cjs",
+      "import": "./dist/html.js"
+    },
     "./markdown": {
       "types": {
         "require": "./dist/markdown.d.cts",
@@ -125,6 +133,9 @@
   },
   "sideEffects": false,
   "dependencies": {
+    "dom-serializer": "catalog:",
+    "domhandler": "catalog:",
+    "htmlparser2": "catalog:",
     "js-tiktoken": "catalog:",
     "zod": "catalog:"
   },

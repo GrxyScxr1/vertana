@@ -7,6 +7,7 @@ export default defineConfig({
     "src/context.ts",
     "src/evaluation.ts",
     "src/glossary.ts",
+    "src/html.ts",
     "src/markdown.ts",
     "src/refine.ts",
     "src/select.ts",

@@ -31,6 +31,7 @@ export type {
 } from "./window.ts";
 export { countTokens, createDefaultTokenCounter } from "./tokens.ts";
 export { createMarkdownChunker } from "./markdown.ts";
+export { createHtmlChunker, type HtmlChunkerOptions } from "./html.ts";
 export {
   type BoundaryEvaluation,
   type BoundaryIssue,
