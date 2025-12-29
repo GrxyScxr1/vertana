@@ -16,7 +16,13 @@ import {
   stepCountIs,
   type ToolSet,
 } from "ai";
-import { buildSystemPrompt, buildUserPrompt, extractTitle } from "./prompt.ts";
+import {
+  buildSystemPrompt,
+  buildUserPrompt,
+  buildUserPromptWithContext,
+  extractTitle,
+  type TranslatedChunk,
+} from "./prompt.ts";
 import { convertToTools } from "./tools.ts";
 import type {
   BestOfNOptions,
@@ -99,6 +105,7 @@ function getDefaultChunker(mediaType?: MediaType) {
  * @param model The language model to use.
  * @param systemPrompt The system prompt.
  * @param text The text to translate.
+ * @param previousChunks Previously translated chunks for context.
  * @param tools Optional tools for passive context sources.
  * @param hasPassiveSources Whether passive sources are present.
  * @param signal Optional abort signal.
@@ -108,11 +115,14 @@ async function translateChunk(
   model: LanguageModel,
   systemPrompt: string,
   text: string,
+  previousChunks: readonly TranslatedChunk[],
   tools?: ToolSet,
   hasPassiveSources?: boolean,
   signal?: AbortSignal,
 ): Promise<{ text: string; tokenUsed: number }> {
-  const userPrompt = buildUserPrompt(text);
+  const userPrompt = previousChunks.length > 0
+    ? buildUserPromptWithContext(text, previousChunks)
+    : buildUserPrompt(text);
   const result = await generateText({
     model,
     system: systemPrompt,
@@ -350,6 +360,7 @@ export async function translate(
   let totalTokensUsed = 0;
   let totalQualityScore = 0;
   const modelWinCounts = new Map<LanguageModel, number>();
+  const previousChunks: TranslatedChunk[] = [];
 
   for (let i = 0; i < chunks.length; i++) {
     options?.signal?.throwIfAborted();
@@ -368,6 +379,7 @@ export async function translate(
           model,
           systemPrompt,
           chunks[i].content,
+          previousChunks,
           tools,
           passiveSources.length > 0,
           options?.signal,
@@ -382,6 +394,7 @@ export async function translate(
     }
 
     // Select best translation for this chunk if best-of-N is enabled
+    let selectedTranslation: string;
     if (useBestOfN) {
       const candidates: Array<Candidate<LanguageModel>> = chunkResults.map(
         (r) => ({ text: r.text, metadata: r.model }),
@@ -399,7 +412,8 @@ export async function translate(
         },
       );
 
-      finalChunks.push(selectionResult.best.text);
+      selectedTranslation = selectionResult.best.text;
+      finalChunks.push(selectedTranslation);
       totalQualityScore += selectionResult.best.score;
 
       // Track winning model for this chunk
@@ -411,8 +425,15 @@ export async function translate(
         );
       }
     } else {
-      finalChunks.push(chunkResults[0].text);
+      selectedTranslation = chunkResults[0].text;
+      finalChunks.push(selectedTranslation);
     }
+
+    // Add to previous chunks for context in next iteration
+    previousChunks.push({
+      source: chunks[i].content,
+      translation: selectedTranslation,
+    });
   }
 
   options?.onProgress?.({

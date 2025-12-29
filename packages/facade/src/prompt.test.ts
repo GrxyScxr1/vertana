@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   buildSystemPrompt,
   buildUserPrompt,
+  buildUserPromptWithContext,
   extractTitle,
   getLanguageName,
 } from "./prompt.ts";
@@ -150,5 +151,48 @@ describe("extractTitle", () => {
     const title = extractTitle("Title:   인사말   \n\n안녕하세요!");
 
     assert.equal(title, "인사말");
+  });
+});
+
+describe("buildUserPromptWithContext", () => {
+  it("returns text as-is when no previous chunks", () => {
+    const prompt = buildUserPromptWithContext("Hello, world!", []);
+
+    assert.equal(prompt, "Hello, world!");
+  });
+
+  it("includes previous chunks as context", () => {
+    const prompt = buildUserPromptWithContext("Current section.", [
+      { source: "First section.", translation: "첫 번째 섹션." },
+    ]);
+
+    assert.ok(prompt.includes("Previous section 1"));
+    assert.ok(prompt.includes("Original: First section."));
+    assert.ok(prompt.includes("Translation: 첫 번째 섹션."));
+    assert.ok(prompt.includes("Current section to translate"));
+    assert.ok(prompt.includes("Current section."));
+  });
+
+  it("includes multiple previous chunks", () => {
+    const prompt = buildUserPromptWithContext("Third section.", [
+      { source: "First section.", translation: "첫 번째 섹션." },
+      { source: "Second section.", translation: "두 번째 섹션." },
+    ]);
+
+    assert.ok(prompt.includes("Previous section 1"));
+    assert.ok(prompt.includes("Previous section 2"));
+    assert.ok(prompt.includes("First section."));
+    assert.ok(prompt.includes("Second section."));
+  });
+
+  it("includes instruction for consistency", () => {
+    const prompt = buildUserPromptWithContext("Current section.", [
+      { source: "First section.", translation: "첫 번째 섹션." },
+    ]);
+
+    assert.ok(prompt.includes("Maintain consistency"));
+    assert.ok(prompt.includes("terminology"));
+    assert.ok(prompt.includes("style"));
+    assert.ok(prompt.includes("tone"));
   });
 });

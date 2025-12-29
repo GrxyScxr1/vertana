@@ -89,6 +89,14 @@ export function buildSystemPrompt(
 }
 
 /**
+ * Represents a previously translated chunk for context.
+ */
+export interface TranslatedChunk {
+  readonly source: string;
+  readonly translation: string;
+}
+
+/**
  * Builds the user prompt for the translation.
  *
  * @param text The text to translate.
@@ -100,6 +108,33 @@ export function buildUserPrompt(text: string, title?: string): string {
     return `Title: ${title}\n\n${text}`;
   }
   return text;
+}
+
+/**
+ * Builds the user prompt with previous chunk context.
+ *
+ * @param text The text to translate.
+ * @param previousChunks Previously translated chunks for context.
+ * @returns The user prompt string with context.
+ */
+export function buildUserPromptWithContext(
+  text: string,
+  previousChunks: readonly TranslatedChunk[],
+): string {
+  if (previousChunks.length === 0) {
+    return text;
+  }
+
+  const contextParts = previousChunks.map((chunk, index) => {
+    return `[Previous section ${
+      index + 1
+    }]\nOriginal: ${chunk.source}\nTranslation: ${chunk.translation}`;
+  });
+
+  return `The following sections have already been translated. ` +
+    `Maintain consistency in terminology, style, and tone with the previous translations.\n\n` +
+    `${contextParts.join("\n\n")}\n\n` +
+    `[Current section to translate]\n${text}`;
 }
 
 /**
