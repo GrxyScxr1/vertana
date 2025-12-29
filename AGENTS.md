@@ -111,6 +111,12 @@ Each package is published to both JSR (Deno) and npm (Node.js/Bun):
  -  JSR uses *deno.json* with TypeScript source directly
  -  npm uses *package.json* with tsdown-built *dist/* output (ESM + CJS + .d.ts)
 
+When adding subpath exports to a package, update the following files:
+
+ -  *deno.json*: Add the subpath to the `exports` field
+ -  *package.json*: Add the subpath to the `exports` field
+ -  *tsdown.config.ts*: Add the entry point to the build configuration
+
 ### Key dependencies
 
  -  *ai* (Vercel AI SDK): LLM abstraction layer, used via `LanguageModel`

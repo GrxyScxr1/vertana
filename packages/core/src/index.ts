@@ -31,3 +31,12 @@ export type {
 } from "./window.ts";
 export { countTokens, createDefaultTokenCounter } from "./tokens.ts";
 export { createMarkdownChunker } from "./markdown.ts";
+export {
+  type BoundaryEvaluation,
+  type BoundaryIssue,
+  evaluateBoundary,
+  refineChunks,
+  type RefineChunksOptions,
+  type RefineChunksResult,
+  type RefineIteration,
+} from "./refine.ts";

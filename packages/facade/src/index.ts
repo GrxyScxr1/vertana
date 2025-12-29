@@ -5,6 +5,7 @@ import {
   countTokens,
   createMarkdownChunker,
   type PassiveContextSource,
+  refineChunks,
 } from "@vertana/core";
 import {
   generateText,
@@ -60,6 +61,7 @@ export type {
   MediaType,
   PromptingProgress,
   RefinementOptions,
+  RefiningProgress,
   TranslateOptions,
   TranslatingProgress,
   Translation,
@@ -216,14 +218,46 @@ export async function translate(
 
     options?.onProgress?.({ stage: "translating", progress: 1 });
 
-    const processingTime = performance.now() - startTime;
+    let translatedText = result.text;
     const tokenUsed = result.usage?.totalTokens ?? 0;
+    let qualityScore: number | undefined;
+    let refinementIterations: number | undefined;
+
+    // Apply refinement if enabled
+    if (options?.refinement != null) {
+      options?.onProgress?.({ stage: "refining", progress: 0 });
+
+      const refineResult = await refineChunks(
+        selectedModel,
+        [text],
+        [translatedText],
+        {
+          targetLanguage,
+          sourceLanguage: options?.sourceLanguage,
+          targetScore: options.refinement.qualityThreshold ?? 0.85,
+          maxIterations: options.refinement.maxIterations ?? 3,
+          glossary: options?.glossary,
+          evaluateBoundaries: false,
+          signal: options?.signal,
+        },
+      );
+
+      translatedText = refineResult.chunks[0];
+      qualityScore = refineResult.scores[0];
+      refinementIterations = refineResult.totalIterations;
+
+      options?.onProgress?.({ stage: "refining", progress: 1 });
+    }
+
+    const processingTime = performance.now() - startTime;
 
     return {
-      text: result.text,
-      title: options?.title != null ? extractTitle(result.text) : undefined,
+      text: translatedText,
+      title: options?.title != null ? extractTitle(translatedText) : undefined,
       tokenUsed,
       processingTime,
+      qualityScore,
+      refinementIterations,
     };
   }
 
@@ -261,15 +295,63 @@ export async function translate(
     totalChunks: chunks.length,
   });
 
+  let finalChunks = translatedChunks;
+  let qualityScore: number | undefined;
+  let refinementIterations: number | undefined;
+
+  // Apply refinement if enabled
+  if (options?.refinement != null) {
+    const originalChunks = chunks.map((c) => c.content);
+    const maxIterations = options.refinement.maxIterations ?? 3;
+
+    options?.onProgress?.({
+      stage: "refining",
+      progress: 0,
+      maxIterations,
+      totalChunks: chunks.length,
+    });
+
+    const refineResult = await refineChunks(
+      selectedModel,
+      originalChunks,
+      translatedChunks,
+      {
+        targetLanguage,
+        sourceLanguage: options?.sourceLanguage,
+        targetScore: options.refinement.qualityThreshold ?? 0.85,
+        maxIterations,
+        glossary: options?.glossary,
+        evaluateBoundaries: true,
+        signal: options?.signal,
+      },
+    );
+
+    finalChunks = [...refineResult.chunks];
+    // Average score across all chunks
+    qualityScore = refineResult.scores.reduce((a, b) => a + b, 0) /
+      refineResult.scores.length;
+    refinementIterations = refineResult.totalIterations;
+
+    options?.onProgress?.({
+      stage: "refining",
+      progress: 1,
+      iteration: refinementIterations,
+      maxIterations,
+      totalChunks: chunks.length,
+    });
+  }
+
   const processingTime = performance.now() - startTime;
 
   // Combine translated chunks
-  const combinedText = translatedChunks.join("\n\n");
+  const combinedText = finalChunks.join("\n\n");
 
   return {
     text: combinedText,
     title: options?.title != null ? extractTitle(combinedText) : undefined,
     tokenUsed: totalTokensUsed,
     processingTime,
+    qualityScore,
+    refinementIterations,
   };
 }

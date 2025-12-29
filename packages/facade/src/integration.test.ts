@@ -81,4 +81,213 @@ if (hasTestModel() || !("Bun" in globalThis)) {
       });
     },
   );
+
+  describe(
+    "translate with refinement",
+    { skip: !hasTestModel() && "TEST_MODEL not set" },
+    () => {
+      it("returns quality score when refinement is enabled", async () => {
+        const model = await getModel();
+
+        const result = await translate(
+          model,
+          "ko",
+          "Hello, world!",
+          {
+            refinement: {
+              qualityThreshold: 0.7,
+              maxIterations: 2,
+            },
+          },
+        );
+
+        assert.ok(result.qualityScore != null);
+        assert.ok(result.qualityScore >= 0 && result.qualityScore <= 1);
+        assert.ok(result.refinementIterations != null);
+      });
+
+      it("achieves target quality score", async () => {
+        const model = await getModel();
+
+        const result = await translate(
+          model,
+          "ko",
+          "Thank you for your help.",
+          {
+            refinement: {
+              qualityThreshold: 0.7,
+              maxIterations: 3,
+            },
+          },
+        );
+
+        assert.ok(
+          result.qualityScore != null && result.qualityScore >= 0.7,
+          `Expected qualityScore >= 0.7, got ${result.qualityScore}`,
+        );
+      });
+
+      it("reports refining progress", async () => {
+        const model = await getModel();
+        const progressStages: string[] = [];
+
+        await translate(
+          model,
+          "ko",
+          "Good morning!",
+          {
+            refinement: {
+              qualityThreshold: 0.7,
+              maxIterations: 1,
+            },
+            onProgress: (progress) => {
+              if (!progressStages.includes(progress.stage)) {
+                progressStages.push(progress.stage);
+              }
+            },
+          },
+        );
+
+        assert.ok(
+          progressStages.includes("refining"),
+          "Should report refining progress stage",
+        );
+      });
+
+      it("uses glossary during refinement", async () => {
+        const model = await getModel();
+        const glossary = [
+          { original: "machine learning", translated: "기계 학습" },
+        ];
+
+        const result = await translate(
+          model,
+          "ko",
+          "Machine learning is revolutionizing technology.",
+          {
+            glossary,
+            refinement: {
+              qualityThreshold: 0.8,
+              maxIterations: 2,
+            },
+          },
+        );
+
+        // The refined translation should follow the glossary
+        assert.ok(
+          result.text.includes("기계 학습"),
+          "Refined translation should use glossary term",
+        );
+      });
+    },
+  );
+
+  describe(
+    "chunking + refinement integration",
+    { skip: !hasTestModel() && "TEST_MODEL not set" },
+    () => {
+      it("refines multiple chunks with boundary evaluation", async () => {
+        const model = await getModel();
+
+        // Long text that will be chunked
+        const longText = `
+# Introduction to Artificial Intelligence
+
+Artificial intelligence (AI) is transforming how we live and work.
+From virtual assistants to self-driving cars, AI is everywhere.
+
+# Machine Learning Basics
+
+Machine learning is a subset of AI that enables computers to learn
+from data without being explicitly programmed. It uses algorithms
+to identify patterns and make decisions.
+
+# Deep Learning
+
+Deep learning uses neural networks with many layers to process
+complex data. It has revolutionized image recognition and natural
+language processing.
+        `.trim();
+
+        const glossary = [
+          { original: "artificial intelligence", translated: "인공지능" },
+          { original: "machine learning", translated: "기계 학습" },
+          { original: "deep learning", translated: "심층 학습" },
+        ];
+
+        const result = await translate(
+          model,
+          "ko",
+          longText,
+          {
+            glossary,
+            mediaType: "text/markdown",
+            refinement: {
+              qualityThreshold: 0.7,
+              maxIterations: 2,
+            },
+          },
+        );
+
+        // Should have quality score from refinement
+        assert.ok(result.qualityScore != null);
+        assert.ok(
+          result.qualityScore >= 0.7,
+          `Expected qualityScore >= 0.7, got ${result.qualityScore}`,
+        );
+
+        // Should use glossary terms
+        assert.ok(
+          result.text.includes("인공지능"),
+          "Should use glossary term for AI",
+        );
+        assert.ok(
+          result.text.includes("기계 학습"),
+          "Should use glossary term for machine learning",
+        );
+      });
+
+      it("reports progress through all stages including refinement", async () => {
+        const model = await getModel();
+        const stages: string[] = [];
+
+        const longText = `
+First paragraph about technology and innovation.
+
+Second paragraph about science and discovery.
+        `.trim();
+
+        await translate(
+          model,
+          "ko",
+          longText,
+          {
+            refinement: {
+              qualityThreshold: 0.7,
+              maxIterations: 1,
+            },
+            onProgress: (progress) => {
+              if (!stages.includes(progress.stage)) {
+                stages.push(progress.stage);
+              }
+            },
+          },
+        );
+
+        // Should go through chunking, translating, and refining stages
+        assert.ok(
+          stages.includes("chunking"),
+          "Should report chunking stage",
+        );
+        assert.ok(
+          stages.includes("translating"),
+          "Should report translating stage",
+        );
+        assert.ok(
+          stages.includes("refining"),
+          "Should report refining stage",
+        );
+      });
+    },
+  );
 }

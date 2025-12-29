@@ -28,10 +28,9 @@ Features
      -  Required context sources: automatically invoked before translation
      -  Passive context sources: LLM-invoked tools using StandardSchema
  -  Translation quality evaluation (accuracy, fluency, terminology, style)
+ -  Iterative refinement with chunk-level and boundary evaluation
 
 ### Planned
-
- -  Iterative refinement (evaluate → fix → re-evaluate loop)
  -  Best-of-N selection with multiple models
  -  Adaptive context window detection
  -  HTML and plain text chunkers

@@ -90,6 +90,14 @@
       "require": "./dist/markdown.cjs",
       "import": "./dist/markdown.js"
     },
+    "./refine": {
+      "types": {
+        "require": "./dist/refine.d.cts",
+        "import": "./dist/refine.d.ts"
+      },
+      "require": "./dist/refine.cjs",
+      "import": "./dist/refine.js"
+    },
     "./tokens": {
       "types": {
         "require": "./dist/tokens.d.cts",

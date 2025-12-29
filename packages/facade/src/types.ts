@@ -74,13 +74,41 @@ export interface TranslatingProgress extends BaseProgress {
 }
 
 /**
+ * Progress information for the refining stage.
+ */
+export interface RefiningProgress extends BaseProgress {
+  readonly stage: "refining";
+
+  /**
+   * The current refinement iteration (1-based).
+   */
+  readonly iteration?: number;
+
+  /**
+   * The maximum number of refinement iterations.
+   */
+  readonly maxIterations?: number;
+
+  /**
+   * When refining chunks, indicates the current chunk index (0-based).
+   */
+  readonly chunkIndex?: number;
+
+  /**
+   * When refining chunks, indicates total number of chunks.
+   */
+  readonly totalChunks?: number;
+}
+
+/**
  * Progress information for the translation process.
  */
 export type TranslationProgress =
   | ChunkingProgress
   | PromptingProgress
   | GatheringContextProgress
-  | TranslatingProgress;
+  | TranslatingProgress
+  | RefiningProgress;
 
 /**
  * The result of a translation operation.
@@ -105,6 +133,18 @@ export interface Translation {
    * The time taken to process the translation, in milliseconds.
    */
   readonly processingTime: number;
+
+  /**
+   * The final quality score after refinement (0-1).
+   * Only present when refinement is enabled.
+   */
+  readonly qualityScore?: number;
+
+  /**
+   * The number of refinement iterations performed.
+   * Only present when refinement is enabled.
+   */
+  readonly refinementIterations?: number;
 }
 
 /**
