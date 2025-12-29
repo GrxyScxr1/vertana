@@ -49,6 +49,12 @@ export interface TranslateChunksOptions {
   readonly sourceLanguage?: Intl.Locale | string;
 
   /**
+   * An optional title for the input text. It's translated along with
+   * the first chunk if provided.
+   */
+  readonly title?: string;
+
+  /**
    * The desired tone for the translated text.
    */
   readonly tone?: TranslationTone;
@@ -180,10 +186,11 @@ async function translateSingleChunk(
   tools?: ToolSet,
   hasPassiveSources?: boolean,
   signal?: AbortSignal,
+  title?: string,
 ): Promise<{ text: string; tokenUsed: number }> {
   const userPrompt = previousChunks.length > 0
     ? buildUserPromptWithContext(text, previousChunks)
-    : buildUserPrompt(text);
+    : buildUserPrompt(text, title);
   const result = await generateText({
     model,
     system: systemPrompt,
@@ -222,6 +229,7 @@ export async function* translateChunks(
   const {
     targetLanguage,
     sourceLanguage,
+    title,
     tone,
     domain,
     mediaType,
@@ -284,6 +292,8 @@ export async function* translateChunks(
       : initialGlossary;
 
     // Translate current chunk with all models in parallel
+    // Title is only included for the first chunk
+    const chunkTitle = i === 0 ? title : undefined;
     const chunkResults = await Promise.all(
       models.map(async (model) => {
         const result = await translateSingleChunk(
@@ -294,6 +304,7 @@ export async function* translateChunks(
           tools,
           hasPassiveSources,
           signal,
+          chunkTitle,
         );
         return { model, ...result };
       }),

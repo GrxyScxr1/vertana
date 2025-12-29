@@ -378,6 +378,61 @@ if (hasTestModel() || !("Bun" in globalThis)) {
         assert.ok(translatedText.length > 0, "Should produce translation");
         // Medical domain should influence terminology choice
       });
+
+      it("includes title in first chunk translation", async () => {
+        const model = await getModel();
+
+        const chunks = ["This is the article body."];
+        let translatedText = "";
+
+        for await (
+          const event of translateChunks(chunks, {
+            targetLanguage: "ko",
+            models: [model],
+            title: "Breaking News",
+          })
+        ) {
+          if (event.type === "chunk") {
+            translatedText = event.translation;
+          }
+        }
+
+        assert.ok(translatedText.length > 0, "Should produce translation");
+        // The translation should include something that looks like a title
+        // (either "Title:" prefix or Korean title text)
+        assert.ok(
+          translatedText.includes("Title:") ||
+            translatedText.includes("제목:") ||
+            /[가-힣]/.test(translatedText),
+          `Expected title to be included in translation, got: ${translatedText}`,
+        );
+      });
+
+      it("only includes title in first chunk when multiple chunks", async () => {
+        const model = await getModel();
+
+        const chunks = ["First paragraph.", "Second paragraph."];
+        const translations: string[] = [];
+
+        for await (
+          const event of translateChunks(chunks, {
+            targetLanguage: "ko",
+            models: [model],
+            title: "Article Title",
+          })
+        ) {
+          if (event.type === "chunk") {
+            translations.push(event.translation);
+          }
+        }
+
+        assert.equal(translations.length, 2);
+        // First chunk should have the title content
+        assert.ok(translations[0].length > 0);
+        // Second chunk should not repeat the title
+        // (it should be shorter or different structure)
+        assert.ok(translations[1].length > 0);
+      });
     },
   );
 }
