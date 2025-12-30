@@ -6,10 +6,13 @@ Vertana: LLM-powered agentic translation library for TypeScript
 > and is not yet ready for production use.  The API is subject to change,
 > and there may be bugs or missing features.
 
-Vertana is an LLM-powered agentic translation library for TypeScript/JavaScript.
-It goes beyond simple LLM prompting by using autonomous agent workflows to
-gather rich contextual information, ensuring high-quality translations that
-preserve meaning, tone, formatting.
+Vertana[^1] is an LLM-powered agentic translation library for
+TypeScript/JavaScript.  It goes beyond simple LLM prompting by using autonomous
+agent workflows to gather rich contextual information, ensuring high-quality
+translations that preserve meaning, tone, formatting.
+
+[^1]: The name *Vertana* is derived from the Sanskrit word *वर्तन* (*vartana*),
+      meaning *turning*, *moving*, or *abiding*.
 
 
 Features
@@ -18,6 +21,7 @@ Features
 ### Implemented
 
  -  Basic translation with LLM
+ -  Plain text chunker
  -  Markdown-aware chunking (section boundaries, ATX/Setext headings)
  -  Token counting (js-tiktoken, cl100k_base encoding)
  -  Progress reporting via callback
@@ -34,8 +38,8 @@ Features
  -  Dynamic glossary accumulation for consistent terminology across chunks
 
 ### Planned
+
  -  Adaptive context window detection
- -  Plain text chunker
 
 
 Packages
