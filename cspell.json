@@ -3,12 +3,14 @@
     "agentic",
     "chunker",
     "dotenvx",
+    "metavar",
     "Minhee",
     "lockfiles",
     "logtape",
     "Setext",
     "subpackages",
     "tsdown",
+    "twoslash",
     "vertana"
   ]
 }

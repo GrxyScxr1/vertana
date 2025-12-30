@@ -39,6 +39,7 @@ const MANUALS = {
     { text: "Glossary deep dive", link: "/manuals/glossary" },
     { text: "Translation quality", link: "/manuals/quality" },
     { text: "Context sources", link: "/manuals/context" },
+    { text: "Web context", link: "/manuals/context-web" },
     { text: "CLI reference", link: "/manuals/cli" },
   ],
 };
@@ -48,6 +49,7 @@ const REFERENCES = {
   items: [
     { text: "@vertana/core", link: "https://jsr.io/@vertana/core/doc" },
     { text: "@vertana/facade", link: "https://jsr.io/@vertana/facade/doc" },
+    { text: "@vertana/context-web", link: "https://jsr.io/@vertana/context-web/doc" },
     { text: "@vertana/cli", link: "https://jsr.io/@vertana/cli/doc" },
   ],
 };

@@ -1,6 +1,12 @@
 import { writeFileSync } from "node:fs";
 import { commandLine, message, metavar, text } from "@optique/core/message";
 import { print, printError } from "@optique/run";
+import {
+  fetchLinkedPages,
+  fetchWebPage,
+  type MediaType,
+} from "@vertana/context-web";
+import type { ContextSource } from "@vertana/core/context";
 import { translate } from "@vertana/facade";
 import type { TranslateResult } from "../cli.ts";
 import { loadConfig } from "../config/index.ts";
@@ -44,6 +50,13 @@ export async function executeTranslate(result: TranslateResult): Promise<void> {
   // Build glossary from CLI options and file
   const glossary = buildGlossary(result.glossary, result.glossaryFile);
 
+  // Build context sources
+  const contextSources = buildContextSources(
+    inputText,
+    result.mediaType,
+    result.fetchLinks,
+  );
+
   // Perform translation
   const translation = await translate(model, result.target, inputText, {
     sourceLanguage: result.source,
@@ -51,6 +64,7 @@ export async function executeTranslate(result: TranslateResult): Promise<void> {
     tone: result.tone,
     domain: result.domain,
     glossary: glossary.length > 0 ? glossary : undefined,
+    contextSources: contextSources.length > 0 ? contextSources : undefined,
   });
 
   // Output the translation
@@ -109,4 +123,29 @@ function buildGlossary(
   }
 
   return mergeGlossaries(...glossaries);
+}
+
+/**
+ * Builds context sources based on CLI options.
+ *
+ * @param text The input text.
+ * @param mediaType The media type of the text.
+ * @param fetchLinksEnabled Whether to fetch linked pages.
+ * @returns Array of context sources.
+ */
+function buildContextSources(
+  text: string,
+  mediaType: MediaType,
+  fetchLinksEnabled: boolean,
+): ContextSource[] {
+  const sources: ContextSource[] = [];
+
+  if (fetchLinksEnabled) {
+    // Fetch content from all linked pages in the text (required source)
+    sources.push(fetchLinkedPages({ text, mediaType }));
+    // Allow LLM to request additional URLs on demand (passive source)
+    sources.push(fetchWebPage);
+  }
+
+  return sources;
 }

@@ -199,6 +199,23 @@ vertana translate -t ja --domain legal contract.md
 ~~~~
 
 
+### Fetching linked pages
+
+The `-L`/`--fetch-links` flag automatically fetches content from URLs
+found in the source text and provides them as additional context:
+
+~~~~ bash
+vertana translate -t ko -L document.md
+~~~~
+
+This is useful when translating documents that reference external articles
+or resources.  The fetched content helps the LLM understand the context
+of the references and translate them more accurately.
+
+See the [*Web context*](./context-web.md) guide for more details on how
+web context fetching works.
+
+
 Glossaries
 ----------
 

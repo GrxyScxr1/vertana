@@ -1,4 +1,5 @@
 import { merge, object, or } from "@optique/core/constructs";
+import { message } from "@optique/core/message";
 import { multiple, optional, withDefault } from "@optique/core/modifiers";
 import type { InferValue } from "@optique/core/parser";
 import { argument, command, constant, option } from "@optique/core/primitives";
@@ -53,6 +54,9 @@ export const translateCommand = command(
     glossaryFile: optional(
       option("--glossary-file", path({ mustExist: true, type: "file" })),
     ),
+    fetchLinks: option("-L", "--fetch-links", {
+      description: message`Fetch linked pages for additional context.`,
+    }),
     output: optional(option("-o", "--output", path({ metavar: "FILE" }))),
     input: optional(argument(path({ metavar: "FILE" }))),
   }),

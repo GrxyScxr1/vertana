@@ -120,6 +120,10 @@ Architecture
  -  *@vertana/facade* (*packages/facade/*): High-level facade for translation
     tasks.  Contains the main `translate()` function API, which wraps
     the core functionality with a simple interface.
+ -  *@vertana/context-web* (*packages/context-web/*): Web context gathering.
+    Provides context sources for fetching and extracting content from linked
+    web pages.
+ -  *@vertana/cli* (*packages/cli/*): Command-line interface for translation.
 
 ### Dual publishing
 
@@ -133,6 +137,16 @@ When adding subpath exports to a package, update the following files:
  -  *deno.json*: Add the subpath to the `exports` field
  -  *package.json*: Add the subpath to the `exports` field
  -  *tsdown.config.ts*: Add the entry point to the build configuration
+
+### Adding new packages
+
+When adding a new package to the monorepo, update the following files:
+
+ -  *README.md* (root): Add the package to the Packages table
+ -  *AGENTS.md*: Add the package to the Package structure list (if applicable)
+ -  *docs/.vitepress/config.mts*: Add API reference link to `REFERENCES`
+ -  *docs/package.json*: Add `"@vertana/<name>": "workspace:"` to `devDependencies`
+    (required for Twoslash type checking in documentation)
 
 ### Key dependencies
 
@@ -648,6 +662,15 @@ pnpm add @vertana/facade
 
 :::
 ~~~~
+
+
+### Links
+
+ -  *Internal links*: When linking to other VitePress documents within
+    the *docs/* directory, use inline link syntax (e.g.,
+    `[text](./path/to/file.md)`) instead of reference-style links.
+ -  *Relative paths*: Always use relative paths for internal links.
+ -  *File extensions*: Include the `.md` extension in internal link paths.
 
 
 ### Building documentation

@@ -1,14 +1,13 @@
 {
-  "name": "@vertana/cli",
+  "name": "@vertana/context-web",
   "version": "0.1.0",
-  "description": "Command-line interface for Vertana translation",
+  "description": "Web context gathering for Vertana - fetch and extract content from linked pages",
   "keywords": [
     "LLM",
     "translation",
-    "natural language processing",
-    "NLP",
-    "language model",
-    "CLI"
+    "context",
+    "web",
+    "readability"
   ],
   "license": "MIT",
   "author": {
@@ -20,7 +19,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dahlia/vertana.git",
-    "directory": "packages/cli"
+    "directory": "packages/context-web"
   },
   "bugs": {
     "url": "https://github.com/dahlia/vertana/issues"
@@ -39,44 +38,46 @@
     "README.md"
   ],
   "type": "module",
-  "module": "./dist/index.mjs",
+  "module": "./dist/index.js",
   "main": "./dist/index.cjs",
-  "types": "./dist/index.d.mts",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": {
         "require": "./dist/index.d.cts",
-        "import": "./dist/index.d.mts"
+        "import": "./dist/index.d.ts"
       },
       "require": "./dist/index.cjs",
-      "import": "./dist/index.mjs"
+      "import": "./dist/index.js"
+    },
+    "./fetch": {
+      "types": {
+        "require": "./dist/fetch.d.cts",
+        "import": "./dist/fetch.d.ts"
+      },
+      "require": "./dist/fetch.cjs",
+      "import": "./dist/fetch.js"
+    },
+    "./extract-links": {
+      "types": {
+        "require": "./dist/extract-links.d.cts",
+        "import": "./dist/extract-links.d.ts"
+      },
+      "require": "./dist/extract-links.cjs",
+      "import": "./dist/extract-links.js"
     }
-  },
-  "bin": {
-    "vertana": "./dist/index.mjs"
   },
   "sideEffects": false,
   "dependencies": {
     "@logtape/logtape": "catalog:",
-    "@napi-rs/keyring": "catalog:",
-    "@optique/core": "catalog:",
-    "@optique/logtape": "catalog:",
-    "@optique/run": "catalog:",
-    "@vertana/context-web": "workspace:",
-    "@vertana/facade": "workspace:"
-  },
-  "peerDependencies": {
-    "@ai-sdk/anthropic": "catalog:",
-    "@ai-sdk/google": "catalog:",
-    "@ai-sdk/openai": "catalog:",
-    "ai": "catalog:"
+    "@mozilla/readability": "catalog:",
+    "@vertana/core": "workspace:",
+    "htmlparser2": "catalog:",
+    "linkedom": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@ai-sdk/anthropic": "catalog:",
-    "@ai-sdk/google": "catalog:",
-    "@ai-sdk/openai": "catalog:",
     "@types/node": "catalog:",
-    "ai": "catalog:",
     "tsdown": "catalog:",
     "typescript": "catalog:"
   },
@@ -84,10 +85,9 @@
     "build": "tsdown",
     "prepack": "tsdown",
     "prepublish": "tsdown",
-    "run": "tsdown && node ./dist/index.mjs",
     "test": "tsdown && node --experimental-transform-types --test --test-concurrency=4",
     "test:bun": "tsdown && bun test",
-    "test:deno": "deno test --allow-env --allow-net --allow-read --allow-write --allow-ffi",
+    "test:deno": "deno test --allow-env --allow-net",
     "test-all": "tsdown && node --experimental-transform-types --test && bun test && deno test"
   }
 }
