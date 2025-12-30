@@ -9,6 +9,30 @@ import {
 } from "vitepress-plugin-group-icons";
 import llmstxt from "vitepress-plugin-llms";
 
+let extraNav: { text: string; link: string }[] = [];
+if (process.env.EXTRA_NAV_TEXT && process.env.EXTRA_NAV_LINK) {
+  extraNav = [
+    {
+      text: process.env.EXTRA_NAV_TEXT,
+      link: process.env.EXTRA_NAV_LINK,
+    },
+  ];
+}
+
+let plausibleScript: [string, Record<string, string>][] = [];
+if (process.env.PLAUSIBLE_DOMAIN) {
+  plausibleScript = [
+    [
+      "script",
+      {
+        defer: "defer",
+        "data-domain": process.env.PLAUSIBLE_DOMAIN,
+        src: "https://plausible.io/js/plausible.js",
+      },
+    ],
+  ];
+}
+
 const MANUALS = {
   text: "Manuals",
   items: [
@@ -31,6 +55,7 @@ const REFERENCES = {
 const TOP_NAV = [
   { text: "Getting started", link: "/start" },
   { text: "Tutorial", link: "/tutorial" },
+  ...extraNav,
 ];
 
 // https://vitepress.dev/reference/site-config
@@ -107,6 +132,7 @@ export default defineConfig({
         content: "/og.png",
       },
     ],
+    ...plausibleScript,
   ],
 
   cleanUrls: true,

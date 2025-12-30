@@ -20,8 +20,8 @@
     "zod": "catalog:"
   },
   "scripts": {
-    "dev": "vitepress dev",
-    "build": "vitepress build",
+    "dev": "cd ../ && pnpm run --filter '!{docs}' -r build && cd docs/ && vitepress dev",
+    "build": "cd ../ && pnpm run --filter '!{docs}' -r build && cd docs/ && NODE_OPTIONS=--max-old-space-size=8192 vitepress build",
     "preview": "vitepress preview"
   }
 }
