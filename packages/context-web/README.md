@@ -16,11 +16,13 @@ linked pages to provide additional context for translation.
 Features
 --------
 
- -  **fetchWebPage**: A passive context source that fetches a single URL
+ -  `fetchWebPage`: A passive context source that fetches a single URL
     and extracts the main content using Mozilla's Readability algorithm.
- -  **fetchLinkedPages**: A required context source factory that extracts
+ -  `fetchLinkedPages`: A required context source factory that extracts
     all links from the source text and fetches their content.
- -  **extractLinks**: A utility function to extract URLs from text
+ -  `searchWeb`: A passive context source that performs a web search
+    (DuckDuckGo Lite) and returns a list of results (title, URL, snippet).
+ -  `extractLinks`: A utility function to extract URLs from text
     in various formats (plain text, Markdown, HTML).
 
 
@@ -51,7 +53,7 @@ Usage
 
 ~~~~ typescript
 import { translate } from "@vertana/facade";
-import { fetchLinkedPages, fetchWebPage } from "@vertana/context-web";
+import { fetchLinkedPages, fetchWebPage, searchWeb } from "@vertana/context-web";
 import { openai } from "@ai-sdk/openai";
 
 const text = `
@@ -63,7 +65,8 @@ const result = await translate(openai("gpt-4o"), "ko", text, {
   contextSources: [
     // Automatically fetch all links in the text
     fetchLinkedPages({ text, mediaType: "text/plain" }),
-    // Allow LLM to fetch additional URLs on demand
+    // Allow LLM to search the web and fetch URLs on demand
+    searchWeb,
     fetchWebPage,
   ],
 });

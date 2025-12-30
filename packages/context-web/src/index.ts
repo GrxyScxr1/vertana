@@ -15,3 +15,5 @@ export {
 } from "./fetch.ts";
 
 export { extractLinks, type MediaType } from "./extract-links.ts";
+
+export { searchWeb } from "./search.ts";

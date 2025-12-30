@@ -43,7 +43,7 @@ bun add @vertana/context-web
 Overview
 --------
 
-This package provides two main context sources:
+This package provides three main context sources:
 
 [`fetchWebPage`](#fetchwebpage)
 :   A passive context source that fetches a single URL on demand.
@@ -53,8 +53,13 @@ This package provides two main context sources:
 :   A required context source factory that extracts all links from the
     source text and fetches their content before translation begins.
 
-Both use [Mozilla's Readability] algorithm to extract the main article
-content from web pages, filtering out navigation, ads, and other noise.
+[`searchWeb`](#searchweb)
+:   A passive context source that performs a web search and returns a list
+    of results (title, URL, snippet).
+
+`fetchWebPage` and `fetchLinkedPages` use [Mozilla's Readability] algorithm
+to extract the main article content from web pages, filtering out navigation,
+ads, and other noise.
 
 [Mozilla's Readability]: https://github.com/mozilla/readability
 
@@ -131,19 +136,62 @@ const result = await translate(model, "ko", text, {
 :   Timeout for each fetch request in milliseconds.  Defaults to `10000`.
 
 
-Combining both sources
-----------------------
+`searchWeb`
+-----------
 
-For best results, use both sources together.  `fetchLinkedPages` provides
-context from links in the source text, while `fetchWebPage` allows the
-LLM to fetch additional URLs it discovers during translation.
+A passive context source that the LLM can invoke when it needs to perform
+web search.  This source only returns a list of results and does not fetch
+any result pages.
 
 ~~~~ typescript twoslash
 import type { LanguageModel } from "ai";
 declare const model: LanguageModel;
 // ---cut-before---
 import { translate } from "@vertana/facade";
-import { fetchLinkedPages, fetchWebPage } from "@vertana/context-web";
+import { searchWeb } from "@vertana/context-web";
+
+const text = "Please translate this and cite sources.";
+
+const result = await translate(model, "ko", text, {
+  contextSources: [searchWeb],
+});
+~~~~
+
+When the LLM needs to find a relevant resource, it can call the `search-web`
+tool with a query to obtain a list of results (title, URL, snippet).
+
+
+### Options
+
+`query`
+:   The search query keyword(s).
+
+`maxResults`
+:   Maximum number of results to return.  Defaults to `10`.
+
+`region`
+:   DuckDuckGo region parameter (`kl`), e.g. `"kr-kr"` or `"us-en"`.
+
+`timeRange`
+:   Time range filter (`df`): `"d"` (day), `"w"` (week), `"m"` (month),
+    `"y"` (year).
+
+
+Combining sources
+-----------------
+
+For best results, use these sources together:
+
+ 1. `fetchLinkedPages` provides context from links already present in the input.
+ 2. `searchWeb` helps the LLM find relevant pages when the input has no links.
+ 3. `fetchWebPage` lets the LLM fetch a specific result URL for more detail.
+
+~~~~ typescript twoslash
+import type { LanguageModel } from "ai";
+declare const model: LanguageModel;
+// ---cut-before---
+import { translate } from "@vertana/facade";
+import { fetchLinkedPages, fetchWebPage, searchWeb } from "@vertana/context-web";
 
 const text = `
 Read the introduction at https://example.com/intro.
@@ -153,7 +201,8 @@ const result = await translate(model, "ko", text, {
   contextSources: [
     // Pre-fetch all links in the text
     fetchLinkedPages({ text, mediaType: "text/plain" }),
-    // Allow LLM to fetch additional URLs on demand
+    // Allow LLM to search the web and fetch additional URLs on demand
+    searchWeb,
     fetchWebPage,
   ],
 });
