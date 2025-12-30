@@ -1,5 +1,11 @@
+<img src="docs/public/vertana.svg" width="128" height="73" align="right">
+
 Vertana: LLM-powered agentic translation library for TypeScript
 ===============================================================
+
+[![JSR][JSR badge]][JSR]
+[![npm][npm badge]][npm]
+[![GitHub Actions][GitHub Actions badge]][GitHub Actions]
 
 > [!CAUTION]
 > Vertana is currently in early development for proof of concept purposes,
@@ -9,37 +15,62 @@ Vertana: LLM-powered agentic translation library for TypeScript
 Vertana[^1] is an LLM-powered agentic translation library for
 TypeScript/JavaScript.  It goes beyond simple LLM prompting by using autonomous
 agent workflows to gather rich contextual information, ensuring high-quality
-translations that preserve meaning, tone, formatting.
+translations that preserve meaning, tone, and formatting.
 
 [^1]: The name *Vertana* is derived from the Sanskrit word *वर्तन* (*vartana*),
       meaning *turning*, *moving*, or *abiding*.
+
+[JSR]: https://jsr.io/@vertana
+[JSR badge]: https://jsr.io/badges/@vertana
+[npm]: https://www.npmjs.com/package/@vertana/facade
+[npm badge]: https://img.shields.io/npm/v/@vertana/facade?logo=npm
+[GitHub Actions]: https://github.com/dahlia/vertana/actions/workflows/main.yaml
+[GitHub Actions badge]: https://github.com/dahlia/vertana/actions/workflows/main.yaml/badge.svg
 
 
 Features
 --------
 
-### Implemented
+ -  *Agentic context gathering*: Automatically invoke external sources before
+    translation, or let the LLM query passive sources as needed via tools
+ -  *Smart chunking*: Content-aware chunkers for plain text, Markdown, and HTML
+    that respect structural boundaries while staying within token limits
+ -  *Glossary support*: Static glossaries for consistent terminology, plus
+    dynamic glossary accumulation across chunks
+ -  *Quality evaluation*: Assess translations on accuracy, fluency, terminology,
+    and style dimensions
+ -  *Iterative refinement*: Re-translate low-scoring chunks with boundary
+    evaluation until quality thresholds are met
+ -  *Best-of-N selection*: Generate translations with multiple models and
+    select the best result via parallel per-chunk evaluation
+ -  *Progress reporting*: Track translation stages via callbacks
+ -  *Multi-runtime support*: Works seamlessly with Deno, Node.js, and Bun
 
- -  Basic translation with LLM
- -  Plain text chunker
- -  Markdown-aware chunking (section boundaries, ATX/Setext headings)
- -  Token counting (js-tiktoken, cl100k_base encoding)
- -  Progress reporting via callback
- -  Glossary support for consistent terminology
- -  Tone, domain, and media type options
- -  Abort signal support for cancellation
- -  Context gathering from external sources (agentic workflows)
-     -  Required context sources: automatically invoked before translation
-     -  Passive context sources: LLM-invoked tools using StandardSchema
- -  Translation quality evaluation (accuracy, fluency, terminology, style)
- -  Iterative refinement with chunk-level and boundary evaluation
- -  Best-of-N selection with multiple models (parallel per-chunk evaluation)
- -  HTML chunker with block element detection and attribute handling
- -  Dynamic glossary accumulation for consistent terminology across chunks
 
-### Planned
+Quick example
+-------------
 
- -  Adaptive context window detection
+~~~~ typescript
+import { translate } from "@vertana/facade";
+import { openai } from "@ai-sdk/openai";
+
+const result = await translate(
+  openai("gpt-4o"),
+  "ko",
+  "Hello, world!  Welcome to Vertana.",
+);
+
+console.log(result.text);
+~~~~
+
+
+Docs
+----
+
+Vertana provides comprehensive documentation to help you get started quickly:
+<https://vertana.org/>.
+
+API reference documentation for each package is available on JSR (see below).
 
 
 Packages
