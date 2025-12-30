@@ -75,8 +75,48 @@ bun add @ai-sdk/openai
 
 :::
 
-Supported providers include OpenAI, Anthropic, Google, Mistral, and more.
-See the [Vercel AI SDK providers documentation] for the full list.
+
+### Switching providers
+
+Vertana works with any provider supported by the Vercel AI SDK.  Simply install
+the provider package and import it:
+
+~~~~ typescript
+// OpenAI
+import { openai } from "@ai-sdk/openai";
+const model = openai("gpt-5.1");
+
+// Anthropic
+import { anthropic } from "@ai-sdk/anthropic";
+const model = anthropic("claude-opus-4-5-20251101");
+
+// Google
+import { google } from "@ai-sdk/google";
+const model = google("gemini-3-flash-preview");
+~~~~
+
+Each provider has its own package following the `@ai-sdk/<provider>` naming
+convention:
+
+| Provider  | Package                  | Example models                            |
+| --------- | ------------------------ | ----------------------------------------- |
+| OpenAI    | `@ai-sdk/openai`         | `gpt-5.1`, `gpt-4o`                       |
+| Anthropic | `@ai-sdk/anthropic`      | `claude-opus-4-5-20251101`, `claude-sonnet-4-5-20241022` |
+| Google    | `@ai-sdk/google`         | `gemini-3-flash-preview`, `gemini-3-pro`  |
+| Mistral   | `@ai-sdk/mistral`        | `mistral-large-2512`                      |
+| Amazon    | `@ai-sdk/amazon-bedrock` | `anthropic.claude-opus-4-5`               |
+
+> [!TIP]
+> Model names are passed directly to the provider's API, so you need to use
+> the exact model IDs from their documentation.  Check each provider's official
+> docs for the full list of available models:
+>
+>  -  [OpenAI models](https://platform.openai.com/docs/models)
+>  -  [Anthropic models](https://platform.claude.com/docs/en/about-claude/models/overview)
+>  -  [Google Gemini models](https://ai.google.dev/gemini-api/docs/models)
+>  -  [Mistral models](https://docs.mistral.ai/getting-started/models)
+>
+> See also the [Vercel AI SDK providers documentation] for integration details.
 
 [Vercel AI SDK]: https://sdk.vercel.ai/
 [Vercel AI SDK providers documentation]: https://sdk.vercel.ai/providers/ai-sdk-providers
