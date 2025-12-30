@@ -21,6 +21,9 @@ hero:
     text: Tutorial
     link: /tutorial
   - theme: alt
+    text: What is Vertana?
+    link: /about
+  - theme: alt
     text: GitHub
     link: https://github.com/dahlia/vertana
 

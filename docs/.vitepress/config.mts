@@ -1,5 +1,6 @@
 import { transformerTwoslash } from "@shikijs/vitepress-twoslash";
 import deflist from "markdown-it-deflist";
+import footnote from "markdown-it-footnote";
 import process from "node:process";
 import { ModuleKind, ModuleResolutionKind, ScriptTarget } from "typescript";
 import { defineConfig } from "vitepress";
@@ -55,6 +56,7 @@ const REFERENCES = {
 };
 
 const TOP_NAV = [
+  { text: "What is Vertana?", link: "/about" },
   { text: "Getting started", link: "/start" },
   { text: "Tutorial", link: "/tutorial" },
 ];
@@ -156,6 +158,7 @@ export default defineConfig({
     ],
     config(md) {
       md.use(deflist);
+      md.use(footnote);
       md.use(groupIconMdPlugin);
     },
   },

@@ -432,8 +432,13 @@ Writing style
 
 When writing documentation in English:
 
+ -  Documentation under *docs/* is not mechanically formatted.
+    `deno fmt` intentionally excludes Markdown and the *docs/* directory, so
+    follow the rules below manually.
  -  Use sentence case for titles and headings (capitalize only the first word
     and proper nouns), not Title Case.
+ -  Use curly quotation marks (“like this”) for quotations in English prose.
+    Use straight apostrophes (like this: '...') for contractions and possessives.
  -  Use *italics* for emphasis rather than **bold**.  Do not overuse emphasis.
  -  Avoid common LLM writing patterns: overusing em dashes, excessive emphasis,
     compulsive summarizing and categorizing, and rigid textbook-like structure
