@@ -55,7 +55,6 @@ const REFERENCES = {
 const TOP_NAV = [
   { text: "Getting started", link: "/start" },
   { text: "Tutorial", link: "/tutorial" },
-  ...extraNav,
 ];
 
 // https://vitepress.dev/reference/site-config
@@ -70,6 +69,7 @@ export default defineConfig({
       ...TOP_NAV,
       MANUALS,
       REFERENCES,
+      ...extraNav,
     ],
 
     sidebar: [
