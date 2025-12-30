@@ -34,6 +34,12 @@ jobs:
     - uses: jdx/mise-action@v2
     - run: mise run install
     - run: mise run test:deno
+      env:
+        TEST_MODEL: ${{ secrets.TEST_MODEL }}
+        GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
 
   test-node:
     runs-on: ubuntu-latest
@@ -43,6 +49,12 @@ jobs:
     - uses: jdx/mise-action@v2
     - run: mise run install
     - run: mise run test:node
+      env:
+        TEST_MODEL: ${{ secrets.TEST_MODEL }}
+        GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
 
   test-bun:
     runs-on: ubuntu-latest
@@ -52,3 +64,9 @@ jobs:
     - uses: jdx/mise-action@v2
     - run: mise run install
     - run: mise run test:bun
+      env:
+        TEST_MODEL: ${{ secrets.TEST_MODEL }}
+        GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
