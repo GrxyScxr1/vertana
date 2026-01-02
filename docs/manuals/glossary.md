@@ -75,6 +75,56 @@ const entry: GlossaryEntry = {
     disambiguate terms with multiple meanings.
 
 
+Preserving terms with `keep()`
+------------------------------
+
+Some terms should remain untranslated—brand names, product names, and certain
+technical terms often need to stay in their original form.  Instead of writing
+`{ original: "React", translated: "React" }`, use the `keep()` helper:
+
+~~~~ typescript twoslash
+import { keep } from "@vertana/core/glossary";
+import { translate } from "@vertana/facade";
+import { openai } from "@ai-sdk/openai";
+
+const result = await translate(
+  openai("gpt-4o"),
+  "ko",
+  "The React component uses hooks for state management.",
+  {
+    glossary: [
+      keep("React"),
+      keep("hook", { context: "React programming concept" }),
+    ],
+  }
+);
+~~~~
+
+The `properNoun()` function is an alias for `keep()` that provides semantic
+clarity when preserving proper nouns:
+
+~~~~ typescript twoslash
+import { properNoun } from "@vertana/core/glossary";
+import { translate } from "@vertana/facade";
+import { openai } from "@ai-sdk/openai";
+
+const result = await translate(
+  openai("gpt-4o"),
+  "ko",
+  "TypeScript was developed by Microsoft.",
+  {
+    glossary: [
+      properNoun("TypeScript"),
+      properNoun("Microsoft"),
+    ],
+  }
+);
+~~~~
+
+Both functions accept an optional `context` parameter for disambiguation, just
+like regular glossary entries.
+
+
 Context-aware entries
 ---------------------
 
@@ -262,6 +312,23 @@ Don't include every word.  Focus on:
  -  Technical vocabulary specific to your domain
  -  Terms with multiple possible translations
  -  Proper nouns that need consistent transliteration
+
+
+### Use helpers for untranslated terms
+
+When a term should remain in its original form, use `keep()` or `properNoun()`
+for readability instead of writing `{ original: "X", translated: "X" }`:
+
+~~~~ typescript twoslash
+import { type Glossary, keep, properNoun } from "@vertana/core/glossary";
+
+const glossary: Glossary = [
+  properNoun("React"),
+  properNoun("TypeScript"),
+  keep("API"),
+  keep("LLM", { context: "Large Language Model" }),
+];
+~~~~
 
 
 ### Provide context for ambiguous terms
