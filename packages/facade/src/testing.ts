@@ -70,22 +70,23 @@ export async function createModelFromString(
  * Gets the test model from the TEST_MODEL environment variable.
  *
  * @returns A promise that resolves to the language model instance,
- *          or undefined if TEST_MODEL is not set.
+ *          or undefined if TEST_MODEL is not set or empty.
  */
 export async function getTestModel(): Promise<LanguageModel | undefined> {
   const modelString = process.env.TEST_MODEL;
-  if (modelString == null) {
+  if (modelString == null || modelString === "") {
     return undefined;
   }
   return await createModelFromString(modelString);
 }
 
 /**
- * Checks if the TEST_MODEL environment variable is set.
+ * Checks if the TEST_MODEL environment variable is set and non-empty.
  * This is useful for conditionally skipping tests synchronously.
  *
- * @returns True if TEST_MODEL is set, false otherwise.
+ * @returns True if TEST_MODEL is set and non-empty, false otherwise.
  */
 export function hasTestModel(): boolean {
-  return process.env.TEST_MODEL != null;
+  const model = process.env.TEST_MODEL;
+  return model != null && model !== "";
 }
