@@ -30,7 +30,13 @@ export type {
   ChunkType,
   TokenCounter,
 } from "./chunking.ts";
-export type { Glossary, GlossaryEntry } from "./glossary.ts";
+export {
+  type Glossary,
+  type GlossaryEntry,
+  keep,
+  type KeepOptions,
+  properNoun,
+} from "./glossary.ts";
 export type {
   AdaptiveContextWindow,
   ContextWindow,
