@@ -19,7 +19,6 @@ Long documents are split into smaller chunks for translation.  This improves
 quality by keeping each translation request within the model's optimal context
 window and allowing for chunk-level quality control.
 
-
 ### Why chunking matters
 
 LLMs have context limits and tend to perform better with focused input.
@@ -29,7 +28,6 @@ Chunking:
  -  Enables progress tracking for long documents
  -  Allows quality evaluation and refinement per chunk
  -  Enables parallel translation of independent chunks
-
 
 ### Media type-aware chunking
 
@@ -58,7 +56,6 @@ const result = await translate(
 );
 ~~~~
 
-
 ### Controlling chunk size
 
 The context window option controls chunk size:
@@ -81,7 +78,6 @@ const result = await translate(
   }
 );
 ~~~~
-
 
 ### Disabling chunking
 
@@ -108,7 +104,6 @@ Translation evaluation
 Vertana can evaluate translation quality using an LLM judge.  Evaluation
 produces a score and identifies specific issues.
 
-
 ### Evaluation criteria
 
 Translations are evaluated on four dimensions:
@@ -124,7 +119,6 @@ Translations are evaluated on four dimensions:
 
 `style`
 :   Does the translation maintain the appropriate tone?
-
 
 ### Evaluation result structure
 
@@ -145,15 +139,14 @@ const result: EvaluationResult = {
 };
 ~~~~
 
-
 ### Score interpretation
 
-| Score | Quality |
-| ----- | ------- |
-| 0.9+  | Excellent |
-| 0.7-0.9 | Good |
+| Score   | Quality    |
+| ------- | ---------- |
+| 0.9+    | Excellent  |
+| 0.7-0.9 | Good       |
 | 0.5-0.7 | Acceptable |
-| < 0.5 | Poor |
+| < 0.5   | Poor       |
 
 
 Iterative refinement
@@ -162,7 +155,6 @@ Iterative refinement
 The refinement feature iteratively improves translations through an
 evaluate-fix loop.  Each iteration identifies issues and produces a
 revised translation until the quality threshold is met.
-
 
 ### Enabling refinement
 
@@ -184,7 +176,6 @@ const result = await translate(
 console.log(result.qualityScore);         // Final quality score
 console.log(result.refinementIterations); // Number of iterations performed
 ~~~~
-
 
 ### Customizing refinement
 
@@ -215,17 +206,16 @@ const result = await translate(
 `qualityThreshold`
 :   Target quality score; refinement stops when reached (default: `0.9`).
 
-
 ### How refinement works
 
-1. Translate the document (or chunk)
-2. Evaluate the translation quality
-3. If score < threshold and iterations < max:
-   - Identify specific issues
-   - Generate improved translation addressing those issues
-   - Re-evaluate
-   - Repeat
-4. Return the final refined translation
+1.  Translate the document (or chunk)
+2.  Evaluate the translation quality
+3.  If score < threshold and iterations < max:
+     -  Identify specific issues
+     -  Generate improved translation addressing those issues
+     -  Re-evaluate
+     -  Repeat
+4.  Return the final refined translation
 
 
 Best-of-N selection
@@ -233,7 +223,6 @@ Best-of-N selection
 
 When you provide multiple language models, Vertana can generate translations
 from each and automatically select the best one.
-
 
 ### Basic usage
 
@@ -255,7 +244,6 @@ const result = await translate(
 
 console.log(result.selectedModel); // The model that produced the best translation
 ~~~~
-
 
 ### Specifying an evaluator model
 
@@ -282,14 +270,13 @@ const result = await translate(
 );
 ~~~~
 
-
 ### How selection works
 
-1. Each model translates the text independently
-2. The evaluator model scores each translation
-3. Translations are ranked by score
-4. The highest-scoring translation is selected
-5. `result.selectedModel` indicates which model produced it
+1.  Each model translates the text independently
+2.  The evaluator model scores each translation
+3.  Translations are ranked by score
+4.  The highest-scoring translation is selected
+5.  `result.selectedModel` indicates which model produced it
 
 
 Combining features
@@ -333,14 +320,14 @@ console.log("Accumulated terms:", result.accumulatedGlossary?.length);
 
 The processing order is:
 
-1. Chunk the document
-2. For each chunk:
-   - Gather context from sources
-   - Translate with each model
-   - Evaluate and select best
-   - Refine if below threshold
-   - Extract terms for dynamic glossary
-3. Combine refined chunks
+1.  Chunk the document
+2.  For each chunk:
+     -  Gather context from sources
+     -  Translate with each model
+     -  Evaluate and select best
+     -  Refine if below threshold
+     -  Extract terms for dynamic glossary
+3.  Combine refined chunks
 
 
 Tracking progress

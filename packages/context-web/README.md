@@ -1,4 +1,5 @@
-# @vertana/context-web
+@vertana/context-web
+====================
 
 [![JSR][JSR badge]][JSR]
 [![npm][npm badge]][npm]
@@ -6,10 +7,10 @@
 Web context gathering for [Vertana] — fetch and extract content from
 linked pages to provide additional context for translation.
 
-[JSR]: https://jsr.io/@vertana/context-web
 [JSR badge]: https://jsr.io/badges/@vertana/context-web
-[npm]: https://www.npmjs.com/package/@vertana/context-web
+[JSR]: https://jsr.io/@vertana/context-web
 [npm badge]: https://img.shields.io/npm/v/@vertana/context-web
+[npm]: https://www.npmjs.com/package/@vertana/context-web
 [Vertana]: https://vertana.org/
 
 

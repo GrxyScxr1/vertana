@@ -12,10 +12,10 @@
 Command-line interface for [Vertana] translation.  Translate documents from
 the terminal with support for multiple providers (OpenAI, Anthropic, Google).
 
-[JSR]: https://jsr.io/@vertana/cli
 [JSR badge]: https://jsr.io/badges/@vertana/cli
-[npm]: https://www.npmjs.com/package/@vertana/cli
+[JSR]: https://jsr.io/@vertana/cli
 [npm badge]: https://img.shields.io/npm/v/@vertana/cli?logo=npm
+[npm]: https://www.npmjs.com/package/@vertana/cli
 [Vertana]: https://vertana.org/
 
 
@@ -75,7 +75,6 @@ Options:
  -  `--glossary-file FILE`: Load glossary from file
  -  `-o, --output FILE`: Output file (defaults to stdout)
 
-
 ### config
 
 Manage configuration settings.
@@ -86,7 +85,6 @@ vertana config api-key PROVIDER [KEY]  # Manage API keys
 ~~~~
 
 Supported providers: `openai`, `anthropic`, `google`
-
 
 For more resources, see the [docs].
 

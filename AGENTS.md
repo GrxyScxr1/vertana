@@ -43,9 +43,9 @@ mise run install
 ### Quality checks
 
 ~~~~ bash
-deno task check  # Type check, lint, format check, and dry-run publish
-deno fmt         # Format code
-deno lint        # Run linter
+mise run check  # Type check, lint, format check, and dry-run publish
+mise run fmt    # Format code
+deno lint       # Run linter
 ~~~~
 
 ### Testing
@@ -59,7 +59,7 @@ mise run test        # Run all checks and tests across all runtimes
 
 ### Building (for npm publishing)
 
-~~~~bash
+~~~~ bash
 pnpm run -r build        # Build all packages with tsdown
 ~~~~
 
@@ -175,10 +175,13 @@ This project follows test-driven development (TDD) practices:
 
  -  Do not use Conventional Commits (no `fix:`, `feat:`, etc. prefixes).
     Keep the first line under 50 characters when possible.
+
  -  Focus on *why* the change was made, not just *what* changed.
+
  -  When referencing issues or PRs, use permalink URLs instead of just
     numbers (e.g., `#123`).  This preserves context if the repository
     is moved later.
+
  -  When listing items after a colon, add a blank line after the colon:
 
     ~~~~
@@ -195,7 +198,6 @@ This project follows test-driven development (TDD) practices:
 
  -  *Run all tests*: Before committing any changes, run `mise run test` to
     ensure all tests pass across Deno, Node.js, and Bun runtimes.
-
 
 ### Changelog (*CHANGES.md*)
 
@@ -291,6 +293,7 @@ Code style
 
  -  All exported APIs must have JSDoc comments describing their purpose,
     parameters, and return values.
+
  -  For APIs added in a specific version, include the `@since` tag with the
     version number:
 
@@ -371,8 +374,8 @@ Code style
 
 ### Log messages
 
- -  This project uses [LogTape] for logging.  Refer to the [LogTape LLM
-    documentation] for detailed usage.
+ -  This project uses [LogTape] for logging.  Refer to the
+    [LogTape LLM documentation] for detailed usage.
 
  -  Use [structured logging] with LogTape instead of string interpolation:
 
@@ -408,8 +411,8 @@ Code style
 
 ### CLI programs
 
-This project uses [Optique] for CLI parsing.  Refer to the [Optique LLM
-documentation] for detailed usage.
+This project uses [Optique] for CLI parsing.  Refer to the
+[Optique LLM documentation] for detailed usage.
 
  -  Use the `print()` and `printError()` functions from `@optique/run` instead
     of `console.log()` or `console.error()` for user-facing messages:
@@ -509,7 +512,8 @@ When writing documentation in English:
  -  Use sentence case for titles and headings (capitalize only the first word
     and proper nouns), not Title Case.
  -  Use curly quotation marks (“like this”) for quotations in English prose.
-    Use straight apostrophes (like this: '...') for contractions and possessives.
+    Use straight apostrophes (like this: '...') for contractions and
+    possessives.
  -  Use *italics* for emphasis rather than **bold**.  Do not overuse emphasis.
  -  Avoid common LLM writing patterns: overusing em dashes, excessive emphasis,
     compulsive summarizing and categorizing, and rigid textbook-like structure
@@ -561,7 +565,9 @@ documentation:
 ### Lists
 
  -  Use ` -  ` (space-hyphen-two spaces) for unordered list items
+
  -  Indent nested items with 4 spaces
+
  -  Align continuation text with the item content:
 
     ~~~~
@@ -573,6 +579,7 @@ documentation:
 ### Code blocks
 
  -  Use four tildes (`~~~~`) for code fences instead of backticks
+
  -  Always specify the language identifier:
 
     ~~~~~
@@ -593,6 +600,7 @@ documentation:
 
  -  Use reference-style links placed at the *end of each section*
     (not at document end)
+
  -  Format reference links with consistent spacing:
 
     ~~~~
@@ -643,7 +651,6 @@ VitePress documentation
 The *docs/* directory contains VitePress documentation with additional features
 beyond standard Markdown.
 
-
 ### Twoslash code blocks
 
 Use the `twoslash` modifier to enable TypeScript type checking and hover
@@ -657,7 +664,6 @@ import { openai } from "@ai-sdk/openai";
 const result = await translate(openai("gpt-4o"), "ko", "Hello");
 ~~~~
 ~~~~~
-
 
 ### Fixture variables
 
@@ -695,7 +701,6 @@ const guide = await fetchStyleGuide();
 ~~~~
 ~~~~~
 
-
 ### Definition lists
 
 VitePress supports definition lists for documenting terms, options,
@@ -715,13 +720,12 @@ or properties:
 This renders as a formatted definition list with the term on one line
 and the description indented below.
 
-
 ### Code groups
 
 Use code groups to show the same content for different package managers
 or environments:
 
-~~~~
+~~~~~
 ::: code-group
 
 ~~~~ bash [Deno]
@@ -737,8 +741,7 @@ pnpm add @vertana/facade
 ~~~~
 
 :::
-~~~~
-
+~~~~~
 
 ### Links
 
@@ -747,7 +750,6 @@ pnpm add @vertana/facade
     `[text](./path/to/file.md)`) instead of reference-style links.
  -  *Relative paths*: Always use relative paths for internal links.
  -  *File extensions*: Include the `.md` extension in internal link paths.
-
 
 ### Building documentation
 

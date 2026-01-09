@@ -13,10 +13,10 @@ High-level facade for [Vertana] providing a simple `translate()` function
 with sensible defaults.  This is the recommended starting point for most
 applications.
 
-[JSR]: https://jsr.io/@vertana/facade
 [JSR badge]: https://jsr.io/badges/@vertana/facade
-[npm]: https://www.npmjs.com/package/@vertana/facade
+[JSR]: https://jsr.io/@vertana/facade
 [npm badge]: https://img.shields.io/npm/v/@vertana/facade?logo=npm
+[npm]: https://www.npmjs.com/package/@vertana/facade
 [Vertana]: https://vertana.org/
 
 
@@ -71,7 +71,6 @@ The `translate()` function accepts an optional `TranslateOptions` object:
  -  `bestOfN`: Multi-model selection for best translation
  -  `onProgress`: Callback for progress updates
  -  `signal`: AbortSignal for cancellation
-
 
 For more resources, see the [docs].
 

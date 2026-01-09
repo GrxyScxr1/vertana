@@ -18,10 +18,10 @@ orchestration.
 > This core package is for when you need fine-grained control over the
 > translation pipeline.
 
-[JSR]: https://jsr.io/@vertana/core
 [JSR badge]: https://jsr.io/badges/@vertana/core
-[npm]: https://www.npmjs.com/package/@vertana/core
+[JSR]: https://jsr.io/@vertana/core
 [npm badge]: https://img.shields.io/npm/v/@vertana/core?logo=npm
+[npm]: https://www.npmjs.com/package/@vertana/core
 [Vertana]: https://vertana.org/
 
 
@@ -88,7 +88,6 @@ Key modules
  -  *Selection*: `@vertana/core/select` — Best-of-N evaluation with
     multiple models
  -  *Glossary*: `@vertana/core/glossary` — Dynamic term accumulation
-
 
 For more resources, see the [docs].
 

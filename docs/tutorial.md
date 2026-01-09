@@ -31,12 +31,12 @@ but falls short when you need:
 Vertana addresses these challenges through an agentic approach.  Instead of
 a single translation pass, Vertana orchestrates multiple steps:
 
- 1. *Chunking*: Splitting long documents into manageable pieces
- 2. *Context gathering*: Collecting relevant information from external sources
- 3. *Translation*: Generating translations with full context awareness
- 4. *Evaluation*: Assessing translation quality with specific criteria
- 5. *Refinement*: Iteratively improving translations based on feedback
- 6. *Selection*: Choosing the best result from multiple candidates
+1.  *Chunking*: Splitting long documents into manageable pieces
+2.  *Context gathering*: Collecting relevant information from external sources
+3.  *Translation*: Generating translations with full context awareness
+4.  *Evaluation*: Assessing translation quality with specific criteria
+5.  *Refinement*: Iteratively improving translations based on feedback
+6.  *Selection*: Choosing the best result from multiple candidates
 
 
 Basic translation
@@ -73,7 +73,6 @@ The result object contains:
 
 `processingTime`
 :   Time taken in milliseconds
-
 
 ### Translation options
 
@@ -122,7 +121,6 @@ Available tone options include:
 | `professional` | Business-like, polished communication        |
 | `literary`     | Artistic, expressive writing                 |
 | `journalistic` | News and media style                         |
-
 
 ### Media types
 
@@ -173,7 +171,6 @@ Glossaries ensure consistent translation of specific terms throughout your
 document.  This is essential for technical documentation, legal texts, and
 any content with domain-specific vocabulary.
 
-
 ### Basic glossary
 
 A glossary is an array of term mappings:
@@ -223,7 +220,6 @@ const result = await translate(
 );
 ~~~~
 
-
 ### Glossary with context
 
 Some terms have different translations depending on context.  You can provide
@@ -256,7 +252,6 @@ const result = await translate(
 console.log(result.text);
 // => "은행이 대출을 승인했습니다. 우리는 강둑을 따라 걸었습니다."
 ~~~~
-
 
 ### Dynamic glossary
 
@@ -317,7 +312,6 @@ Long documents are automatically split into chunks for processing.  This
 ensures that each chunk fits within the model's context window and allows
 for progress tracking.
 
-
 ### Default chunking
 
 By default, Vertana selects an appropriate chunker based on the media type:
@@ -346,7 +340,6 @@ const result = await translate(
 );
 ~~~~
 
-
 ### Custom context window
 
 You can control the maximum tokens per chunk:
@@ -369,7 +362,6 @@ const result = await translate(
   }
 );
 ~~~~
-
 
 ### Disabling chunking
 
@@ -398,7 +390,6 @@ Quality refinement
 Refinement is an iterative process where Vertana evaluates the translation
 and improves it based on identified issues.  This is particularly valuable
 for high-stakes content where quality is critical.
-
 
 ### Enabling refinement
 
@@ -431,7 +422,6 @@ When refinement is enabled, the result includes:
 `refinementIterations`
 :   Number of improvement iterations performed
 
-
 ### Customizing refinement
 
 You can control the refinement process:
@@ -454,7 +444,6 @@ const result = await translate(
   }
 );
 ~~~~
-
 
 ### Tracking refinement progress
 
@@ -489,7 +478,6 @@ When you need the highest quality translation, you can use multiple models
 and let Vertana select the best result.  Each model generates a translation,
 and an evaluator model scores them to pick the winner.
 
-
 ### Using multiple models
 
 ~~~~ typescript twoslash
@@ -515,7 +503,6 @@ const result = await translate(
 console.log(result.selectedModel);
 // => { modelId: "gpt-4o", ... }
 ~~~~
-
 
 ### Custom evaluator
 
@@ -557,7 +544,6 @@ process.  They come in two modes:
 `"passive"`
 :   Available as tools that the LLM can invoke when needed
 
-
 ### Required context sources
 
 Use required sources for information that's always relevant:
@@ -598,7 +584,6 @@ const result = await translate(
   }
 );
 ~~~~
-
 
 ### Passive context sources
 

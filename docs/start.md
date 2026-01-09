@@ -45,7 +45,6 @@ bun add @vertana/facade
 
 :::
 
-
 ### Vercel AI SDK
 
 Vertana uses the [Vercel AI SDK] for LLM interactions, so you'll also need to
@@ -75,6 +74,7 @@ bun add @ai-sdk/openai
 
 :::
 
+[Vercel AI SDK]: https://sdk.vercel.ai/
 
 ### Switching providers
 
@@ -98,27 +98,30 @@ const model = google("gemini-3-flash-preview");
 Each provider has its own package following the `@ai-sdk/<provider>` naming
 convention:
 
-| Provider  | Package                  | Example models                            |
-| --------- | ------------------------ | ----------------------------------------- |
-| OpenAI    | `@ai-sdk/openai`         | `gpt-5.1`, `gpt-4o`                       |
+| Provider  | Package                  | Example models                                           |
+| --------- | ------------------------ | -------------------------------------------------------- |
+| OpenAI    | `@ai-sdk/openai`         | `gpt-5.1`, `gpt-4o`                                      |
 | Anthropic | `@ai-sdk/anthropic`      | `claude-opus-4-5-20251101`, `claude-sonnet-4-5-20241022` |
-| Google    | `@ai-sdk/google`         | `gemini-3-flash-preview`, `gemini-3-pro`  |
-| Mistral   | `@ai-sdk/mistral`        | `mistral-large-2512`                      |
-| Amazon    | `@ai-sdk/amazon-bedrock` | `anthropic.claude-opus-4-5`               |
+| Google    | `@ai-sdk/google`         | `gemini-3-flash-preview`, `gemini-3-pro`                 |
+| Mistral   | `@ai-sdk/mistral`        | `mistral-large-2512`                                     |
+| Amazon    | `@ai-sdk/amazon-bedrock` | `anthropic.claude-opus-4-5`                              |
 
 > [!TIP]
 > Model names are passed directly to the provider's API, so you need to use
 > the exact model IDs from their documentation.  Check each provider's official
 > docs for the full list of available models:
 >
->  -  [OpenAI models](https://platform.openai.com/docs/models)
->  -  [Anthropic models](https://platform.claude.com/docs/en/about-claude/models/overview)
->  -  [Google Gemini models](https://ai.google.dev/gemini-api/docs/models)
->  -  [Mistral models](https://docs.mistral.ai/getting-started/models)
+>  -  [OpenAI models]
+>  -  [Anthropic models]
+>  -  [Google Gemini models]
+>  -  [Mistral models]
 >
 > See also the [Vercel AI SDK providers documentation] for integration details.
 
-[Vercel AI SDK]: https://sdk.vercel.ai/
+[OpenAI models]: https://platform.openai.com/docs/models
+[Anthropic models]: https://platform.claude.com/docs/en/about-claude/models/overview
+[Google Gemini models]: https://ai.google.dev/gemini-api/docs/models
+[Mistral models]: https://docs.mistral.ai/getting-started/models
 [Vercel AI SDK providers documentation]: https://sdk.vercel.ai/providers/ai-sdk-providers
 
 
@@ -143,12 +146,11 @@ console.log(result.text);
 
 The `translate()` function takes three required arguments:
 
- 1. A language model from the Vercel AI SDK
- 2. The target language (as a BCP 47 language tag or [`Intl.Locale`])
- 3. The text to translate
+1.  A language model from the Vercel AI SDK
+2.  The target language (as a BCP 47 language tag or [`Intl.Locale`])
+3.  The text to translate
 
 [`Intl.Locale`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale
-
 
 ### With options
 
@@ -173,7 +175,6 @@ const result = await translate(
 console.log(result.text);
 // => "患者は急性心筋梗塞を呈した。"
 ~~~~
-
 
 ### Tracking progress
 

@@ -119,7 +119,6 @@ const result = await translate(model, "ko", text, {
 });
 ~~~~
 
-
 ### Options
 
 `text`
@@ -160,7 +159,6 @@ const result = await translate(model, "ko", text, {
 When the LLM needs to find a relevant resource, it can call the `search-web`
 tool with a query to obtain a list of results (title, URL, snippet).
 
-
 ### Options
 
 `query`
@@ -182,9 +180,9 @@ Combining sources
 
 For best results, use these sources together:
 
- 1. `fetchLinkedPages` provides context from links already present in the input.
- 2. `searchWeb` helps the LLM find relevant pages when the input has no links.
- 3. `fetchWebPage` lets the LLM fetch a specific result URL for more detail.
+1.  `fetchLinkedPages` provides context from links already present in the input.
+2.  `searchWeb` helps the LLM find relevant pages when the input has no links.
+3.  `fetchWebPage` lets the LLM fetch a specific result URL for more detail.
 
 ~~~~ typescript twoslash
 import type { LanguageModel } from "ai";
@@ -253,8 +251,8 @@ vertana translate -t ko -L document.md
 
 This automatically:
 
- 1. Extracts all links from the input document
- 2. Fetches and extracts content from linked pages
- 3. Provides the content as context for translation
+1.  Extracts all links from the input document
+2.  Fetches and extracts content from linked pages
+3.  Provides the content as context for translation
 
 See the [*CLI reference*](./cli.md) for more details.

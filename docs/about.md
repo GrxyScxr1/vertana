@@ -4,23 +4,23 @@ description: >-
 ---
 
 What is Vertana?
-===============
+================
 
 Vertana[^1] is an LLM-powered agentic translation library for TypeScript.
-It goes beyond a single “prompt in, text out” translation call by orchestrating
-multiple steps—gathering context, enforcing terminology, evaluating quality, and
-iteratively refining output.
+It goes beyond a single “prompt in, text out” translation call by
+orchestrating multiple steps—gathering context, enforcing terminology,
+evaluating quality, and iteratively refining output.
 
 Vertana is designed for applications where translation is part of a product or a
 workflow: documentation sites, developer tools, localization pipelines, customer
 support tooling, or internal knowledge bases.
 
-[^1]: The name *Vertana* is derived from the Sanskrit word *वर्तन* (*vartana*),
-      meaning *turning*, *moving*, or *abiding*.
+[^1]: The name *Vertana* is derived from the Sanskrit word *वर्तन*
+      (*vartana*), meaning *turning*, *moving*, or *abiding*.
 
 
 Why an agentic workflow?
------------------------
+------------------------
 
 A single-pass translation is often good enough for short, generic text.
 It becomes fragile when you need:
@@ -39,14 +39,14 @@ How Vertana works
 
 Vertana composes a translation from multiple stages:
 
- 1. *Chunking*: Split long input into manageable pieces while preserving
+1.  *Chunking*: Split long input into manageable pieces while preserving
     formatting and structure.
- 2. *Context gathering*: Collect relevant information from configured sources
+2.  *Context gathering*: Collect relevant information from configured sources
     (required sources run up front; passive sources are exposed as tools).
- 3. *Translation*: Generate a draft translation with the available context.
- 4. *Evaluation*: Score and critique the translation against explicit criteria.
- 5. *Refinement*: Iteratively apply feedback to improve weak spots.
- 6. *Selection*: Optionally compare multiple candidates and pick the best.
+3.  *Translation*: Generate a draft translation with the available context.
+4.  *Evaluation*: Score and critique the translation against explicit criteria.
+5.  *Refinement*: Iteratively apply feedback to improve weak spots.
+6.  *Selection*: Optionally compare multiple candidates and pick the best.
 
 Not every workflow uses every stage, but the building blocks are there when you
 need tighter control.

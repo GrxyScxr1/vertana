@@ -191,14 +191,12 @@ console.log(result.accumulatedGlossary);
 // ]
 ~~~~
 
-
 ### How it works
 
-1. After translating each chunk, Vertana extracts key terminology pairs
-2. Extracted terms are added to a running glossary
-3. Subsequent chunks receive the accumulated glossary, ensuring consistency
-4. The final glossary is returned in `result.accumulatedGlossary`
-
+1.  After translating each chunk, Vertana extracts key terminology pairs
+2.  Extracted terms are added to a running glossary
+3.  Subsequent chunks receive the accumulated glossary, ensuring consistency
+4.  The final glossary is returned in `result.accumulatedGlossary`
 
 ### Customizing dynamic glossary
 
@@ -231,7 +229,6 @@ const result = await translate(
 `extractorModel`
 :   The model to use for term extraction.  If not specified, uses the same
     model as translation.
-
 
 ### Combining static and dynamic glossaries
 
@@ -313,7 +310,6 @@ Don't include every word.  Focus on:
  -  Terms with multiple possible translations
  -  Proper nouns that need consistent transliteration
 
-
 ### Use helpers for untranslated terms
 
 When a term should remain in its original form, use `keep()` or `properNoun()`
@@ -329,7 +325,6 @@ const glossary: Glossary = [
   keep("LLM", { context: "Large Language Model" }),
 ];
 ~~~~
-
 
 ### Provide context for ambiguous terms
 
@@ -352,12 +347,10 @@ const glossary: Glossary = [
 ];
 ~~~~
 
-
 ### Use dynamic glossary for long documents
 
 For documents with many chunks, enable dynamic glossary to automatically
 maintain consistency without manually defining every term.
-
 
 ### Reuse glossaries across projects
 

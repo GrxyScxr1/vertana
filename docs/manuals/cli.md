@@ -41,7 +41,6 @@ Configuration
 
 Before using the CLI, you need to configure a language model and API key.
 
-
 ### Setting the model
 
 Use the `config model` command to set the default language model:
@@ -56,8 +55,8 @@ The model code format is `PROVIDER:MODEL`.  Supported providers:
 :   OpenAI models (e.g., `gpt-4.1`, `gpt-4.1-mini`, `gpt-4.1-nano`)
 
 `anthropic`
-:   Anthropic models (e.g., `claude-sonnet-4-5-20250929`, `claude-opus-4-5-20251124`,
-    `haiku-4-5-20251015`)
+:   Anthropic models (e.g., `claude-sonnet-4-5-20250929`,
+    `claude-opus-4-5-20251124`, `haiku-4-5-20251015`)
 
 `google`
 :   Google Generative AI models (e.g., `gemini-3-flash`, `gemini-3-pro`)
@@ -67,7 +66,6 @@ To view the current model:
 ~~~~ bash
 vertana config model
 ~~~~
-
 
 ### Setting API keys
 
@@ -102,7 +100,6 @@ The `translate` command performs translation.  The basic syntax is:
 vertana translate -t TARGET [OPTIONS] [FILE]
 ~~~~
 
-
 ### Target language
 
 The `-t` or `--target` option specifies the target language (required):
@@ -117,7 +114,6 @@ Language codes should be [BCP 47] language tags (e.g., `ko`, `ja`, `zh-Hans`,
 
 [BCP 47]: https://www.rfc-editor.org/info/bcp47
 
-
 ### Source language
 
 The `-s` or `--source` option specifies the source language.  If omitted,
@@ -126,7 +122,6 @@ Vertana auto-detects the source language:
 ~~~~ bash
 vertana translate -s en -t ko document.md
 ~~~~
-
 
 ### Input sources
 
@@ -143,7 +138,6 @@ echo "Hello, world!" | vertana translate -t ko
 vertana translate -t ko
 ~~~~
 
-
 ### Output options
 
 By default, translated text goes to stdout.  Use `-o` or `--output` to save
@@ -152,7 +146,6 @@ to a file:
 ~~~~ bash
 vertana translate -t ko -o output.md input.md
 ~~~~
-
 
 ### Media type
 
@@ -176,7 +169,6 @@ Supported media types:
 `text/html`
 :   HTML documents.  Preserves tags and structure.
 
-
 ### Tone
 
 The `--tone` option sets the translation tone:
@@ -188,7 +180,6 @@ vertana translate -t ko --tone formal document.md
 Available tones: `formal`, `informal`, `technical`, `casual`, `professional`,
 `literary`, `journalistic`.
 
-
 ### Domain
 
 The `--domain` option provides domain context for specialized terminology:
@@ -197,7 +188,6 @@ The `--domain` option provides domain context for specialized terminology:
 vertana translate -t ko --domain medical report.md
 vertana translate -t ja --domain legal contract.md
 ~~~~
-
 
 ### Fetching linked pages
 
@@ -221,7 +211,6 @@ Glossaries
 
 Glossaries ensure consistent translation of specific terms.
 
-
 ### Inline glossary entries
 
 Use `-g` or `--glossary` to define term mappings inline:
@@ -229,7 +218,6 @@ Use `-g` or `--glossary` to define term mappings inline:
 ~~~~ bash
 vertana translate -t ko -g "Vertana=버타나" -g "agentic=에이전틱" document.md
 ~~~~
-
 
 ### Glossary files
 

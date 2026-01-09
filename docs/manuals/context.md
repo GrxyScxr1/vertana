@@ -45,7 +45,6 @@ Required context sources
 Required sources run automatically before translation starts.  They provide
 context that's always relevant.
 
-
 ### Creating a required source
 
 ~~~~ typescript twoslash
@@ -69,7 +68,6 @@ async function fetchAuthorBio(): Promise<string> {
   return "Jane Smith is a technical writer...";
 }
 ~~~~
-
 
 ### Using required sources
 
@@ -106,7 +104,6 @@ Passive sources are tools the LLM can invoke when it needs specific
 information.  They require a parameter schema so the LLM knows how to call
 them.
 
-
 ### Creating a passive source
 
 Passive sources need a parameter schema using Standard Schema:
@@ -137,7 +134,6 @@ async function lookupTerm(term: string): Promise<string> {
 }
 ~~~~
 
-
 ### When passive sources are called
 
 The LLM decides when to call passive sources based on:
@@ -157,7 +153,6 @@ Passive sources use [Standard Schema] for parameter definitions.  This allows
 you to use any compatible schema library:
 
 [Standard Schema]: https://standardschema.dev/
-
 
 ### Using Zod
 
@@ -179,7 +174,6 @@ const source: PassiveContextSource<{ query: string; limit: number }> = {
 };
 ~~~~
 
-
 ### Using Valibot
 
 ~~~~ typescript twoslash
@@ -198,7 +192,6 @@ const source: PassiveContextSource<{ query: string }> = {
   },
 };
 ~~~~
-
 
 ### Using ArkType
 
@@ -225,7 +218,6 @@ Helper functions
 
 Vertana provides helper functions for working with context sources.
 
-
 ### Gathering required context
 
 ~~~~ typescript twoslash
@@ -237,7 +229,6 @@ import { gatherRequiredContext } from "@vertana/core/context";
 const results = await gatherRequiredContext(sources);
 // Only required sources are invoked
 ~~~~
-
 
 ### Combining context results
 
@@ -254,7 +245,6 @@ const combined = combineContextResults(results);
 
 Practical examples
 ------------------
-
 
 ### Style guide source
 
@@ -280,7 +270,6 @@ Style Guide:
   },
 };
 ~~~~
-
 
 ### Document metadata source
 
@@ -316,7 +305,6 @@ Category: ${metadata.category}
   };
 }
 ~~~~
-
 
 ### Terminology database lookup
 
@@ -366,7 +354,6 @@ Built-in context sources
 
 Vertana provides ready-to-use context sources through separate packages.
 
-
 ### Web context (`@vertana/context-web`)
 
 The `@vertana/context-web` package provides context sources for fetching
@@ -400,7 +387,6 @@ See the [Web context](/manuals/context-web) guide for detailed documentation.
 Best practices
 --------------
 
-
 ### Keep context focused
 
 Provide only relevant information.  Too much context can confuse the LLM:
@@ -420,7 +406,6 @@ const focused: RequiredContextSource = {
   },
 };
 ~~~~
-
 
 ### Use passive sources for optional lookups
 
@@ -445,7 +430,6 @@ const referenceLookup: PassiveContextSource<{ url: string }> = {
   },
 };
 ~~~~
-
 
 ### Include metadata for debugging
 

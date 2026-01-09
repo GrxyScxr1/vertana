@@ -23,6 +23,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: jdx/mise-action@v2
+      with:
+        version: 2025.12.12
     - run: mise run install
     - run: mise run check
 
@@ -32,6 +34,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: jdx/mise-action@v2
+      with:
+        version: 2025.12.12
     - run: mise run install
     - run: mise run test:deno
       env:
@@ -47,6 +51,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: jdx/mise-action@v2
+      with:
+        version: 2025.12.12
     - run: mise run install
     - run: mise run test:node
       env:
@@ -62,6 +68,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: jdx/mise-action@v2
+      with:
+        version: 2025.12.12
     - run: mise run install
     - run: mise run test:bun
       env:
@@ -81,6 +89,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: jdx/mise-action@v2
+      with:
+        version: 2025.12.12
     - run: mise run install
     - run: |
         set -ex
@@ -130,6 +140,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: jdx/mise-action@v2
+      with:
+        version: 2025.12.12
     - run: mise run install
     - run: |
         set -ex
